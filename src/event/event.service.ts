@@ -9,7 +9,8 @@ import {
   CreateJoinEventPayload,
   CreateOutEventPayload,
 } from './payload/create-event.payload';
-import { EventDto } from './dto/event.dto';
+import { EventDto, EventListDto } from './dto/event.dto';
+import { EventQuery } from './query/event.query';
 import { CreateEventData } from './type/create-event-data.type';
 import { get } from 'lodash';
 import { JoinEventData } from './type/join-event-data.type';
@@ -62,6 +63,11 @@ export class EventService {
     const event = await this.eventRepository.createEvent(createEvent);
     return EventDto.from(event);
   }
+
+  async getEvents(query: EventQuery): Promise<EventListDto> {
+    const events = await this.eventRepository.getEvents(query);
+    return EventListDto.from(events);
+}
 
   async getEventById(eventId: number): Promise<EventDto> {
     const event = await this.eventRepository.getEventById(eventId);

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateEventData } from './type/create-event-data.type';
 import { EventData } from './type/event-data.type';
+import { EventQuery } from './query/event.query';
 import { JoinEventData } from './type/join-event-data.type';
 import { User, Event, Category, City } from '@prisma/client';
 import { OutEventData } from './type/out-event-data.type';
@@ -95,6 +96,27 @@ export class EventRepository {
       },
     });
   }
+
+  async getEvents(query: EventQuery): Promise<EventData[]> {
+    return this.prisma.event.findMany({
+        where: {
+            hostId: query.hostId,
+            categoryId: query.categoryId,
+            cityId: query.cityId,
+        },
+        select: {
+            id: true,
+            hostId: true,
+            title: true,
+            description: true,
+            categoryId: true,
+            cityId: true,
+            startTime: true,
+            endTime: true,
+            maxPeople: true,
+        },
+    });
+}
 
   async numberOfPeople(eventId: number): Promise<number> {
     return this.prisma.eventJoin.count({

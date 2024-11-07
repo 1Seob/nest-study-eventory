@@ -5,6 +5,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  Query,
 } from '@nestjs/common';
 import { EventService } from './event.service';
 import {
@@ -14,12 +15,13 @@ import {
   ApiTags,
   ApiNoContentResponse,
 } from '@nestjs/swagger';
-import { EventDto } from './dto/event.dto';
+import { EventDto, EventListDto } from './dto/event.dto';
 import {
   CreateEventPayload,
   CreateJoinEventPayload,
   CreateOutEventPayload,
 } from './payload/create-event.payload';
+import { EventQuery } from './query/event.query';
 import { join } from 'path';
 
 @Controller('events')
@@ -43,6 +45,13 @@ export class EventController {
     @Param('eventId', ParseIntPipe) eventId: number,
   ): Promise<EventDto> {
     return this.eventService.getEventById(eventId);
+  }
+
+  @Get()
+  @ApiOperation ({ summary: '여러 모임을 조회합니다' })
+  @ApiOkResponse({ type: EventListDto })
+  async getEvents(@Query() query: EventQuery): Promise<EventListDto> {
+    return this.eventService.getEvents(query);
   }
 
   @Post(':eventId/join')
