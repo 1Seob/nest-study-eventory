@@ -66,21 +66,3 @@ export class CreateEventPayload {
   })
   maxPeople!: number;
 }
-
-export class CreateJoinEventPayload {
-  @IsInt()
-  @ApiProperty({
-    description: '모임 참가자 ID',
-    type: Number,
-  })
-  userId!: number;
-}
-
-export class CreateOutEventPayload {
-  @IsInt()
-  @ApiProperty({
-    description: '모임 탈퇴자 ID',
-    type: Number,
-  })
-  userId!: number;
-}

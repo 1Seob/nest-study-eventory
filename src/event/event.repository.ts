@@ -22,6 +22,11 @@ export class EventRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         maxPeople: data.maxPeople,
+        eventJoin: {
+          create: {
+            userId: data.hostId,
+          },
+        },
       },
       select: {
         id: true,
@@ -33,12 +38,12 @@ export class EventRepository {
         startTime: true,
         endTime: true,
         maxPeople: true,
-      },
-    });
-    await this.prisma.eventJoin.create({
-      data: {
-        eventId: (await newEvent).id,
-        userId: data.hostId,
+        eventJoin: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
       },
     });
     return newEvent;
@@ -60,22 +65,12 @@ export class EventRepository {
     });
   }
 
-  async getCitiesById(cityId: number): Promise<City | null> {
+  async getCityById(cityId: number): Promise<City | null> {
     return this.prisma.city.findUnique({
       where: {
         id: cityId,
       },
     });
-  }
-
-  async isTitleExist(title: string): Promise<boolean> {
-    const event = await this.prisma.event.findFirst({
-      where: {
-        title: title,
-      },
-    });
-
-    return !!event;
   }
 
   async getEventById(eventId: number): Promise<EventData | null> {
@@ -118,7 +113,7 @@ export class EventRepository {
     });
 }
 
-  async numberOfPeople(eventId: number): Promise<number> {
+  async getNumberOfPeople(eventId: number): Promise<number> {
     return this.prisma.eventJoin.count({
       where: {
         eventId: eventId,

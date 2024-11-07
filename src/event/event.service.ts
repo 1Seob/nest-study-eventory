@@ -6,9 +6,9 @@ import {
 import { EventRepository } from './event.repository';
 import {
   CreateEventPayload,
-  CreateJoinEventPayload,
-  CreateOutEventPayload,
 } from './payload/create-event.payload';
+import { JoinEventPayload} from './payload/join-event.payload';
+import { OutEventPayload } from './payload/out-event.payload';
 import { EventDto, EventListDto } from './dto/event.dto';
 import { EventQuery } from './query/event.query';
 import { CreateEventData } from './type/create-event-data.type';
@@ -44,8 +44,8 @@ export class EventService {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
 
-    const getCityID = await this.eventRepository.getCitiesById(payload.cityId);
-    if (!getCityID) {
+    const cityID = await this.eventRepository.getCityById(payload.cityId);
+    if (!cityID) {
       throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
     }
 
@@ -79,7 +79,7 @@ export class EventService {
 
   async joinEvent(
     eventId: number,
-    payload: CreateJoinEventPayload,
+    payload: JoinEventPayload,
   ): Promise<void> {
     const joinEvent: JoinEventData = {
       userId: payload.userId,
@@ -89,7 +89,7 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
     }
-    const number = await this.eventRepository.numberOfPeople(eventId);
+    const number = await this.eventRepository.getNumberOfPeople(eventId);
     if (event.maxPeople <= number) {
       throw new ConflictException('인원이 가득 찼습니다.');
     }
@@ -103,12 +103,15 @@ export class EventService {
     if (new Date() > event.startTime) {
       throw new ConflictException('모임 시작 시간이 지났습니다.');
     }
+    if (payload.userId > 99999999999999) {
+      throw new ConflictException('올바른 사용자가 아닙니다.');
+    }
     await this.eventRepository.joinEvent(joinEvent);
   }
 
   async outEvent(
     eventId: number,
-    payload: CreateOutEventPayload,
+    payload: OutEventPayload,
   ): Promise<void> {
     const outEvent: OutEventData = {
       userId: payload.userId,

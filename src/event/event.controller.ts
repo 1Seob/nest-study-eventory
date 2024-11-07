@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
   Param,
   ParseIntPipe,
   Post,
@@ -18,9 +19,9 @@ import {
 import { EventDto, EventListDto } from './dto/event.dto';
 import {
   CreateEventPayload,
-  CreateJoinEventPayload,
-  CreateOutEventPayload,
 } from './payload/create-event.payload';
+import { JoinEventPayload } from './payload/join-event.payload';
+import { OutEventPayload } from './payload/out-event.payload';
 import { EventQuery } from './query/event.query';
 import { join } from 'path';
 
@@ -57,9 +58,10 @@ export class EventController {
   @Post(':eventId/join')
   @ApiOperation({ summary: '특정 모임에 참가합니다' })
   @ApiNoContentResponse()
+  @HttpCode(204)
   async joinEvent(
     @Param('eventId', ParseIntPipe) eventId: number,
-    @Body() joinEventPayload: CreateJoinEventPayload,
+    @Body() joinEventPayload: JoinEventPayload,
   ): Promise<void> {
     return this.eventService.joinEvent(eventId, joinEventPayload);
   }
@@ -67,9 +69,10 @@ export class EventController {
   @Post(':eventId/out')
   @ApiOperation({ summary: '특정 모임에서 나갑니다' })
   @ApiNoContentResponse()
+  @HttpCode(204)
   async outEvent(
     @Param('eventId', ParseIntPipe) eventId: number,
-    @Body() outEventPayload: CreateOutEventPayload,
+    @Body() outEventPayload: OutEventPayload,
   ): Promise<void> {
     return this.eventService.outEvent(eventId, outEventPayload);
   }
