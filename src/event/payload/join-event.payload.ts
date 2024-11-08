@@ -1,13 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
-import {
-    IsDateString,
-    IsInt,
-    IsOptional,
-    IsString,
-    Max,
-    Min,
-} from 'class-validator';
+import { ApiProperty } from '@nestjs/swagger';
+import { IsInt } from 'class-validator';
 
 export class JoinEventPayload {
     @IsInt()

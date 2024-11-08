@@ -12,7 +12,6 @@ import { OutEventPayload } from './payload/out-event.payload';
 import { EventDto, EventListDto } from './dto/event.dto';
 import { EventQuery } from './query/event.query';
 import { CreateEventData } from './type/create-event-data.type';
-import { get } from 'lodash';
 import { JoinEventData } from './type/join-event-data.type';
 import { OutEventData } from './type/out-event-data.type';
 
@@ -21,7 +20,7 @@ export class EventService {
   constructor(private readonly eventRepository: EventRepository) {}
 
   async createEvent(payload: CreateEventPayload): Promise<EventDto> {
-    const createEvent: CreateEventData = {
+    const createData: CreateEventData = {
       hostId: payload.hostId,
       title: payload.title,
       description: payload.description,
@@ -44,23 +43,23 @@ export class EventService {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
 
-    const cityID = await this.eventRepository.getCityById(payload.cityId);
-    if (!cityID) {
+    const city = await this.eventRepository.getCityById(payload.cityId);
+    if (!city) {
       throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
     }
 
-    if (createEvent.endTime < createEvent.startTime) {
+    if (createData.endTime < createData.startTime) {
       throw new ConflictException(
         '모임 시작 시간이 종료 시간보다 늦을 수 없습니다.',
       );
     }
-    if (new Date() > createEvent.startTime) {
+    if (new Date() > createData.startTime) {
       throw new ConflictException(
         '모임 시작 시간이 현재 시간보다 늦어야 합니다.',
       );
     }
 
-    const event = await this.eventRepository.createEvent(createEvent);
+    const event = await this.eventRepository.createEvent(createData);
     return EventDto.from(event);
   }
 
@@ -85,6 +84,10 @@ export class EventService {
       userId: payload.userId,
       eventId,
     };
+    const user = await this.eventRepository.getUserById(payload.userId);
+    if (!user) {
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
+    }
     const event = await this.eventRepository.getEventById(eventId);
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
@@ -103,9 +106,6 @@ export class EventService {
     if (new Date() > event.startTime) {
       throw new ConflictException('모임 시작 시간이 지났습니다.');
     }
-    if (payload.userId > 99999999999999) {
-      throw new ConflictException('올바른 사용자가 아닙니다.');
-    }
     await this.eventRepository.joinEvent(joinEvent);
   }
 
@@ -117,6 +117,10 @@ export class EventService {
       userId: payload.userId,
       eventId,
     };
+    const user = await this.eventRepository.getUserById(payload.userId);
+    if (!user) {
+      throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
+    }
     const event = await this.eventRepository.getEventById(eventId);
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');

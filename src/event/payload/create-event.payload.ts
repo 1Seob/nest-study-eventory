@@ -1,11 +1,8 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { Type } from 'class-transformer';
 import {
   IsDateString,
   IsInt,
-  IsOptional,
   IsString,
-  Max,
   Min,
 } from 'class-validator';
 
@@ -60,6 +57,7 @@ export class CreateEventPayload {
   endTime!: Date;
 
   @IsInt()
+  @Min(1)
   @ApiProperty({
     description: '최대 인원 수',
     type: Number,
