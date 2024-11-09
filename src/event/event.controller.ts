@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -77,12 +78,22 @@ export class EventController {
   }
 
   @Patch(':eventId')
-  @ApiOperation({ summary: '특정 모임을 수정합니다' })
+  @ApiOperation({ summary: '모임을 수정합니다' })
   @ApiOkResponse({ type: EventDto })
   async patchUpdateEvent(
     @Param('eventId', ParseIntPipe) eventId: number,
     @Body() payload: PatchUpdateEventPaylaod,
   ): Promise<EventDto> {
     return this.eventService.patchUpdateEvent(eventId, payload);
+  }
+
+  @Delete(':eventId')
+  @HttpCode(204)
+  @ApiOperation({ summary: '모임을 삭제합니다' })
+  @ApiNoContentResponse()
+  async deleteEvent(
+    @Param('eventId', ParseIntPipe) eventId: number,
+  ): Promise<void> {
+    return this.eventService.deleteEvent(eventId);
   }
 }

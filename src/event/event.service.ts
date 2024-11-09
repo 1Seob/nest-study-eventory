@@ -209,4 +209,15 @@ export class EventService {
     );
     return EventDto.from(updatedEvent);
   }
+
+  async deleteEvent(eventId: number): Promise<void> {
+    const event = await this.eventRepository.getEventById(eventId);
+    if (!event) {
+      throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
+    }
+    if (new Date() > event.startTime) {
+      throw new ConflictException('모임 시작 시간이 지났습니다.');
+    }
+    await this.eventRepository.deleteEvent(eventId);
+  }
 }

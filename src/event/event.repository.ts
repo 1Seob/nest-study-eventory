@@ -185,4 +185,17 @@ export class EventRepository {
       },
     });
   }
+
+  async deleteEvent(eventId: number): Promise<void> {
+    await this.prisma.eventJoin.deleteMany({
+      where: {
+        eventId: eventId,
+      },
+    });
+    await this.prisma.event.delete({
+      where: {
+        id: eventId,
+      },
+    });
+  }
 }
