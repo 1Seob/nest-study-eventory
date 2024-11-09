@@ -17,9 +17,7 @@ import {
   ApiNoContentResponse,
 } from '@nestjs/swagger';
 import { EventDto, EventListDto } from './dto/event.dto';
-import {
-  CreateEventPayload,
-} from './payload/create-event.payload';
+import { CreateEventPayload } from './payload/create-event.payload';
 import { JoinEventPayload } from './payload/join-event.payload';
 import { OutEventPayload } from './payload/out-event.payload';
 import { EventQuery } from './query/event.query';
@@ -48,7 +46,7 @@ export class EventController {
   }
 
   @Get()
-  @ApiOperation ({ summary: '여러 모임을 조회합니다' })
+  @ApiOperation({ summary: '여러 모임을 조회합니다' })
   @ApiOkResponse({ type: EventListDto })
   async getEvents(@Query() query: EventQuery): Promise<EventListDto> {
     return this.eventService.getEvents(query);

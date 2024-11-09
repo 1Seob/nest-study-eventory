@@ -4,10 +4,8 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { EventRepository } from './event.repository';
-import {
-  CreateEventPayload,
-} from './payload/create-event.payload';
-import { JoinEventPayload} from './payload/join-event.payload';
+import { CreateEventPayload } from './payload/create-event.payload';
+import { JoinEventPayload } from './payload/join-event.payload';
 import { OutEventPayload } from './payload/out-event.payload';
 import { EventDto, EventListDto } from './dto/event.dto';
 import { EventQuery } from './query/event.query';
@@ -66,7 +64,7 @@ export class EventService {
   async getEvents(query: EventQuery): Promise<EventListDto> {
     const events = await this.eventRepository.getEvents(query);
     return EventListDto.from(events);
-}
+  }
 
   async getEventById(eventId: number): Promise<EventDto> {
     const event = await this.eventRepository.getEventById(eventId);
@@ -76,10 +74,7 @@ export class EventService {
     return EventDto.from(event);
   }
 
-  async joinEvent(
-    eventId: number,
-    payload: JoinEventPayload,
-  ): Promise<void> {
+  async joinEvent(eventId: number, payload: JoinEventPayload): Promise<void> {
     const JoinEventData: JoinEventData = {
       userId: payload.userId,
       eventId,
@@ -92,7 +87,8 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
     }
-    const participantsNumber = await this.eventRepository.getNumberOfPeople(eventId);
+    const participantsNumber =
+      await this.eventRepository.getNumberOfPeople(eventId);
     if (event.maxPeople <= participantsNumber) {
       throw new ConflictException('인원이 가득 찼습니다.');
     }
@@ -109,10 +105,7 @@ export class EventService {
     await this.eventRepository.joinEvent(JoinEventData);
   }
 
-  async outEvent(
-    eventId: number,
-    payload: OutEventPayload,
-  ): Promise<void> {
+  async outEvent(eventId: number, payload: OutEventPayload): Promise<void> {
     const OutEventData: OutEventData = {
       userId: payload.userId,
       eventId,

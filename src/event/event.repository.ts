@@ -93,24 +93,24 @@ export class EventRepository {
 
   async getEvents(query: EventQuery): Promise<EventData[]> {
     return this.prisma.event.findMany({
-        where: {
-            hostId: query.hostId,
-            categoryId: query.categoryId,
-            cityId: query.cityId,
-        },
-        select: {
-            id: true,
-            hostId: true,
-            title: true,
-            description: true,
-            categoryId: true,
-            cityId: true,
-            startTime: true,
-            endTime: true,
-            maxPeople: true,
-        },
+      where: {
+        hostId: query.hostId,
+        categoryId: query.categoryId,
+        cityId: query.cityId,
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        cityId: true,
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
+      },
     });
-}
+  }
 
   async getNumberOfPeople(eventId: number): Promise<number> {
     return this.prisma.eventJoin.count({
