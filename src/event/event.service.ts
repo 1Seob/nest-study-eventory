@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   Injectable,
   NotFoundException,
@@ -7,11 +8,13 @@ import { EventRepository } from './event.repository';
 import { CreateEventPayload } from './payload/create-event.payload';
 import { JoinEventPayload } from './payload/join-event.payload';
 import { OutEventPayload } from './payload/out-event.payload';
+import { PatchUpdateEventPaylaod } from './payload/patch-update-event.payload';
 import { EventDto, EventListDto } from './dto/event.dto';
 import { EventQuery } from './query/event.query';
 import { CreateEventData } from './type/create-event-data.type';
 import { JoinEventData } from './type/join-event-data.type';
 import { OutEventData } from './type/out-event-data.type';
+import { UpdateEventData } from './type/update-event-data.type';
 
 @Injectable()
 export class EventService {
@@ -132,5 +135,78 @@ export class EventService {
       throw new ConflictException('모임 시작 시간이 지났습니다.');
     }
     await this.eventRepository.outEvent(OutEventData);
+  }
+
+  async patchUpdateEvent(
+    eventId: number,
+    payload: PatchUpdateEventPaylaod,
+  ): Promise<EventDto> {
+    if (payload.title === null) {
+      throw new BadRequestException('title은 null이 될 수 없습니다.');
+    }
+    if(payload.description === null) {
+      throw new BadRequestException('description은 null이 될 수 없습니다.');
+    }
+    if(payload.categoryId === null) {
+      throw new BadRequestException('categoryId은 null이 될 수 없습니다.');
+    }
+    else if (payload.categoryId !== undefined) {
+      const category = await this.eventRepository.getCategoryById(payload.categoryId);
+      if (!category) {
+        throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
+      }
+    }
+    if(payload.cityId === null) {
+      throw new BadRequestException('cityId은 null이 될 수 없습니다.');
+    }
+    else if (payload.cityId !== undefined) {
+      const city = await this.eventRepository.getCityById(payload.cityId);
+      if (!city) {
+        throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
+      }
+    }
+    if(payload.startTime === null) {
+      throw new BadRequestException('startTime은 null이 될 수 없습니다.');
+    }
+    if(payload.endTime === null) {
+      throw new BadRequestException('endTime은 null이 될 수 없습니다.');
+    }
+    if(payload.maxPeople === null) {
+      throw new BadRequestException('maxPeople은 null이 될 수 없습니다.');
+    }
+    const event = await this.eventRepository.getEventById(eventId);
+    if (!event) {
+      throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
+    }
+    
+    if (payload.startTime && payload.endTime) {
+      if (payload.endTime < payload.startTime) {
+        throw new ConflictException(
+          '모임 시작 시간이 종료 시간보다 늦을 수 없습니다.',
+        );
+      }
+    }
+    if (payload.startTime) {
+      if (new Date() > payload.startTime) {
+        throw new ConflictException(
+          '모임 시작 시간이 현재 시간보다 늦어야 합니다.',
+        );
+      }
+    }
+    const updateData : UpdateEventData = {
+      title: payload.title,
+      description: payload.description,
+      categoryId: payload.categoryId,
+      cityId: payload.cityId,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      maxPeople: payload.maxPeople,
+    };
+
+    const updatedEvent = await this.eventRepository.updateEvent(
+      eventId,
+      updateData,
+    );
+    return EventDto.from(updatedEvent);
   }
 }

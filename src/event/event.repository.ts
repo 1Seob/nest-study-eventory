@@ -6,6 +6,7 @@ import { EventQuery } from './query/event.query';
 import { JoinEventData } from './type/join-event-data.type';
 import { User, Category, City } from '@prisma/client';
 import { OutEventData } from './type/out-event-data.type';
+import { UpdateEventData } from './type/update-event-data.type';
 
 @Injectable()
 export class EventRepository {
@@ -153,6 +154,34 @@ export class EventRepository {
           eventId: data.eventId,
           userId: data.userId,
         },
+      },
+    });
+  }
+
+  async updateEvent(eventId: number, data: UpdateEventData): Promise<EventData> {
+    return this.prisma.event.update({
+      where: {
+        id: eventId,
+      },
+      data: {
+        title: data.title,
+        description: data.description,
+        categoryId: data.categoryId,
+        cityId: data.cityId,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        maxPeople: data.maxPeople,
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        cityId: true,
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
       },
     });
   }
