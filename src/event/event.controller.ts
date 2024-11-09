@@ -23,7 +23,6 @@ import {
 import { JoinEventPayload } from './payload/join-event.payload';
 import { OutEventPayload } from './payload/out-event.payload';
 import { EventQuery } from './query/event.query';
-import { join } from 'path';
 
 @Controller('events')
 @ApiTags('Event API')

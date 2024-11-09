@@ -4,7 +4,7 @@ import { CreateEventData } from './type/create-event-data.type';
 import { EventData } from './type/event-data.type';
 import { EventQuery } from './query/event.query';
 import { JoinEventData } from './type/join-event-data.type';
-import { User, Event, Category, City } from '@prisma/client';
+import { User, Category, City } from '@prisma/client';
 import { OutEventData } from './type/out-event-data.type';
 
 @Injectable()
@@ -12,7 +12,7 @@ export class EventRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(data: CreateEventData): Promise<EventData> {
-    const newEvent = this.prisma.event.create({
+    return this.prisma.event.create({
       data: {
         hostId: data.hostId,
         title: data.title,
@@ -46,7 +46,6 @@ export class EventRepository {
         },
       },
     });
-    return newEvent;
   }
 
   async getUserById(hostId: number): Promise<User | null> {

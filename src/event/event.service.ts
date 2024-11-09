@@ -80,7 +80,7 @@ export class EventService {
     eventId: number,
     payload: JoinEventPayload,
   ): Promise<void> {
-    const joinEvent: JoinEventData = {
+    const JoinEventData: JoinEventData = {
       userId: payload.userId,
       eventId,
     };
@@ -92,8 +92,8 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
     }
-    const number = await this.eventRepository.getNumberOfPeople(eventId);
-    if (event.maxPeople <= number) {
+    const participantsNumber = await this.eventRepository.getNumberOfPeople(eventId);
+    if (event.maxPeople <= participantsNumber) {
       throw new ConflictException('인원이 가득 찼습니다.');
     }
     const isUserJoinedEvent = await this.eventRepository.isUserJoinedEvent(
@@ -106,14 +106,14 @@ export class EventService {
     if (new Date() > event.startTime) {
       throw new ConflictException('모임 시작 시간이 지났습니다.');
     }
-    await this.eventRepository.joinEvent(joinEvent);
+    await this.eventRepository.joinEvent(JoinEventData);
   }
 
   async outEvent(
     eventId: number,
     payload: OutEventPayload,
   ): Promise<void> {
-    const outEvent: OutEventData = {
+    const OutEventData: OutEventData = {
       userId: payload.userId,
       eventId,
     };
@@ -138,6 +138,6 @@ export class EventService {
     if (new Date() > event.startTime) {
       throw new ConflictException('모임 시작 시간이 지났습니다.');
     }
-    await this.eventRepository.outEvent(outEvent);
+    await this.eventRepository.outEvent(OutEventData);
   }
 }
