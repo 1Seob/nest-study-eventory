@@ -50,9 +50,10 @@ export class EventRepository {
   }
 
   async getUserById(hostId: number): Promise<User | null> {
-    return this.prisma.user.findUnique({
+    return this.prisma.user.findFirst({
       where: {
         id: hostId,
+        deletedAt: null,
       },
     });
   }
@@ -95,7 +96,10 @@ export class EventRepository {
   async getEvents(query: EventQuery): Promise<EventData[]> {
     return this.prisma.event.findMany({
       where: {
-        hostId: query.hostId,
+        host: {
+          deletedAt: null,
+          id: query.hostId,
+        },
         categoryId: query.categoryId,
         cityId: query.cityId,
       },
@@ -141,6 +145,9 @@ export class EventRepository {
           eventId: eventId,
           userId: userId,
         },
+        user: {
+          deletedAt: null,
+        }
       },
     });
 
@@ -154,6 +161,9 @@ export class EventRepository {
           eventId: data.eventId,
           userId: data.userId,
         },
+        user: {
+          deletedAt: null,
+        }
       },
     });
   }
