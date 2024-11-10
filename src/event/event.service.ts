@@ -144,34 +144,34 @@ export class EventService {
     if (payload.title === null) {
       throw new BadRequestException('title은 null이 될 수 없습니다.');
     }
-    if(payload.description === null) {
+    if (payload.description === null) {
       throw new BadRequestException('description은 null이 될 수 없습니다.');
     }
-    if(payload.categoryId === null) {
+    if (payload.categoryId === null) {
       throw new BadRequestException('categoryId은 null이 될 수 없습니다.');
-    }
-    else if (payload.categoryId) {
-      const category = await this.eventRepository.getCategoryById(payload.categoryId);
+    } else if (payload.categoryId) {
+      const category = await this.eventRepository.getCategoryById(
+        payload.categoryId,
+      );
       if (!category) {
         throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
       }
     }
-    if(payload.cityId === null) {
+    if (payload.cityId === null) {
       throw new BadRequestException('cityId은 null이 될 수 없습니다.');
-    }
-    else if (payload.cityId) {
+    } else if (payload.cityId) {
       const city = await this.eventRepository.getCityById(payload.cityId);
       if (!city) {
         throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
       }
     }
-    if(payload.startTime === null) {
+    if (payload.startTime === null) {
       throw new BadRequestException('startTime은 null이 될 수 없습니다.');
     }
-    if(payload.endTime === null) {
+    if (payload.endTime === null) {
       throw new BadRequestException('endTime은 null이 될 수 없습니다.');
     }
-    if(payload.maxPeople === null) {
+    if (payload.maxPeople === null) {
       throw new BadRequestException('maxPeople은 null이 될 수 없습니다.');
     }
     const event = await this.eventRepository.getEventById(eventId);
@@ -179,9 +179,11 @@ export class EventService {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
     }
     if (new Date() > event.startTime) {
-      throw new ConflictException('이미 시작된 모임의 정보를 변경할 수 없습니다.');
+      throw new ConflictException(
+        '이미 시작된 모임의 정보를 변경할 수 없습니다.',
+      );
     }
-    const updateData : UpdateEventData = {
+    const updateData: UpdateEventData = {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
@@ -192,26 +194,38 @@ export class EventService {
     };
     if (updateData.startTime && !updateData.endTime) {
       if (updateData.startTime > event.endTime) {
-        throw new ConflictException('변경될 모임 시작 시간이 기존 종료 시간보다 늦을 수 없습니다.');
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 기존 종료 시간보다 늦을 수 없습니다.',
+        );
       }
       if (new Date() > updateData.startTime) {
-        throw new ConflictException('변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.');
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.',
+        );
       }
     }
     if (updateData.endTime && !updateData.startTime) {
       if (updateData.endTime < event.startTime) {
-        throw new ConflictException('변경될 모임 종료 시간이 기존 시작 시간보다 빠를 수 없습니다.');
+        throw new ConflictException(
+          '변경될 모임 종료 시간이 기존 시작 시간보다 빠를 수 없습니다.',
+        );
       }
       if (new Date() > updateData.endTime) {
-        throw new ConflictException('변경될 모임 종료 시간이 현재 시간보다 늦어야 합니다.');
+        throw new ConflictException(
+          '변경될 모임 종료 시간이 현재 시간보다 늦어야 합니다.',
+        );
       }
-    } 
+    }
     if (updateData.startTime && updateData.endTime) {
       if (updateData.endTime < updateData.startTime) {
-        throw new ConflictException('변경될 모임 시작 시간이 변경될 종료 시간보다 늦을 수 없습니다.');
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 변경될 종료 시간보다 늦을 수 없습니다.',
+        );
       }
       if (updateData.startTime < new Date()) {
-        throw new ConflictException('변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.');
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.',
+        );
       }
     }
 

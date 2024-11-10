@@ -147,7 +147,7 @@ export class EventRepository {
         },
         user: {
           deletedAt: null,
-        }
+        },
       },
     });
 
@@ -163,12 +163,15 @@ export class EventRepository {
         },
         user: {
           deletedAt: null,
-        }
+        },
       },
     });
   }
 
-  async updateEvent(eventId: number, data: UpdateEventData): Promise<EventData> {
+  async updateEvent(
+    eventId: number,
+    data: UpdateEventData,
+  ): Promise<EventData> {
     return this.prisma.event.update({
       where: {
         id: eventId,
