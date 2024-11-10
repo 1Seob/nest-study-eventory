@@ -1,5 +1,6 @@
-import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsDate, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class PatchUpdateEventPaylaod {
     @IsOptional()
@@ -35,7 +36,8 @@ export class PatchUpdateEventPaylaod {
     cityId?: number | null;
     
     @IsOptional()
-    @IsString()
+    @IsDate()
+    @Type(() => Date)
     @ApiPropertyOptional({
         description: '모임 시작 시간',
         type: Date,
@@ -43,7 +45,8 @@ export class PatchUpdateEventPaylaod {
     startTime?: Date | null;
     
     @IsOptional()
-    @IsString()
+    @IsDate()
+    @Type(() => Date)
     @ApiPropertyOptional({
         description: '모임 종료 시간',
         type: Date,
