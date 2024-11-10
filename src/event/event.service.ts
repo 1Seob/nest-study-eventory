@@ -210,6 +210,9 @@ export class EventService {
       if (updateData.endTime < updateData.startTime) {
         throw new ConflictException('변경될 모임 시작 시간이 변경될 종료 시간보다 늦을 수 없습니다.');
       }
+      if (updateData.startTime < new Date()) {
+        throw new ConflictException('변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.');
+      }
     }
 
     const updatedEvent = await this.eventRepository.updateEvent(
