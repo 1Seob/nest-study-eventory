@@ -26,7 +26,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      cityId: payload.cityId,
+      citiesId: payload.citiesId,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,
@@ -44,10 +44,18 @@ export class EventService {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
 
-    const city = await this.eventRepository.getCityById(payload.cityId);
+    for (const cityId of payload.citiesId) {
+      const city = await this.eventRepository.getCityById(cityId);
+      if (!city) {
+        throw new NotFoundException(
+          '해당 도시를 찾을 수 없습니다. : ' + cityId,
+        );
+      }
+    }
+    /* const city = await this.eventRepository.getCityById(payload.cityId);
     if (!city) {
       throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
-    }
+    } */
 
     if (createData.endTime < createData.startTime) {
       throw new ConflictException(
@@ -157,12 +165,25 @@ export class EventService {
         throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
       }
     }
-    if (payload.cityId === null) {
-      throw new BadRequestException('cityId은 null이 될 수 없습니다.');
-    } else if (payload.cityId) {
-      const city = await this.eventRepository.getCityById(payload.cityId);
-      if (!city) {
-        throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
+
+    const citiesId = payload.citiesId;
+    if (citiesId === null) {
+      throw new BadRequestException('citiesId은 null이 될 수 없습니다.');
+    } else if (citiesId) {
+      if (citiesId.length === 0) {
+        throw new BadRequestException(
+          'citiesId은 최소 한 개 이상이어야 합니다.',
+        );
+      }
+      for (const cityId of citiesId) {
+        if (cityId === null) {
+          throw new BadRequestException('cityId은 null이 될 수 없습니다.');
+        } else if (cityId) {
+          const city = await this.eventRepository.getCityById(cityId);
+          if (!city) {
+            throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
+          }
+        }
       }
     }
     if (payload.startTime === null) {
@@ -187,7 +208,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      cityId: payload.cityId,
+      citiesId: citiesId,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,

@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+/* import { PrismaClient } from '@prisma/client';
 
 type CreateEventCity = {
   eventId: number;
@@ -21,4 +21,4 @@ async function main(): Promise<void> {
   });
 }
 
-main();
+main(); */
