@@ -13,14 +13,7 @@ export class EventRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(data: CreateEventData): Promise<EventData> {
-    // Validate the input citiesId
-    if (!data.citiesId || data.citiesId.length === 0) {
-      throw new Error('citiesId is required and should not be empty');
-    }
-
-    // Transaction to ensure atomicity
     const newEvent = await this.prisma.$transaction(async (prisma) => {
-      // Create the event
       const createdEvent = await prisma.event.create({
         data: {
           hostId: data.hostId,
@@ -53,8 +46,6 @@ export class EventRepository {
           },
         },
       });
-
-      // Bulk insert event-city mappings
       await prisma.eventCity.createMany({
         data: data.citiesId.map((cityId) => ({
           eventId: createdEvent.id,
@@ -64,8 +55,6 @@ export class EventRepository {
 
       return createdEvent;
     });
-
-    // Prepare the response data
     const eventData: EventData = {
       id: newEvent.id,
       hostId: newEvent.hostId,
