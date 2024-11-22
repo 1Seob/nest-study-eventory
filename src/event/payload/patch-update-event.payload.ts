@@ -1,4 +1,11 @@
-import { IsDate, IsInt, IsOptional, IsString, Min } from 'class-validator';
+import {
+  IsDate,
+  IsInt,
+  ArrayNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+} from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 
@@ -28,6 +35,7 @@ export class PatchUpdateEventPaylaod {
   categoryId?: number | null;
 
   @IsOptional()
+  @ArrayNotEmpty()
   @IsInt({ each: true })
   @ApiPropertyOptional({
     description: '모임 도시들 ID',

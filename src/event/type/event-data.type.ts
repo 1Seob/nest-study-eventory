@@ -4,6 +4,7 @@ export type EventData = {
   title: string;
   description: string;
   categoryId: number;
+  citiesId: number[];
   startTime: Date;
   endTime: Date;
   maxPeople: number;
