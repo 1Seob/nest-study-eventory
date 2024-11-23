@@ -26,7 +26,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      citiesId: payload.citiesId,
+      eventCity: payload.eventCity,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,
@@ -47,17 +47,16 @@ export class EventService {
     const validCitiesId = new Set(
       await this.eventRepository.getVailidCitiesId(),
     );
-    for (const cityId of payload.citiesId) {
-      if (!validCitiesId.has(cityId)) {
+    for (const cityId of payload.eventCity.map((city) => city.cityId)) {
+      if (!cityId) {
+        throw new BadRequestException('cityId는 null이 될 수 없습니다.');
+      }
+      if (cityId in validCitiesId) {
         throw new ConflictException(
           '해당 도시를 찾을 수 없습니다. : ' + cityId,
         );
       }
     }
-    /* const city = await this.eventRepository.getCityById(payload.cityId);
-    if (!city) {
-      throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
-    } */
 
     if (createData.endTime < createData.startTime) {
       throw new ConflictException(
@@ -168,18 +167,17 @@ export class EventService {
       }
     }
 
-    const citiesId = payload.citiesId;
     const validCitiesId = new Set(
       await this.eventRepository.getVailidCitiesId(),
     );
-    if (citiesId === null) {
-      throw new BadRequestException('citiesId은 null이 될 수 없습니다.');
-    } else if (citiesId) {
-      for (const cityId of citiesId) {
-        if (cityId === null) {
-          throw new BadRequestException('cityId은 null이 될 수 없습니다.');
+    if (payload.eventCity === null) {
+      throw new BadRequestException('eventCity은 null이 될 수 없습니다.');
+    } else if (payload.eventCity) {
+      for (const cityId of payload.eventCity.map((city) => city.cityId)) {
+        if (!cityId) {
+          throw new BadRequestException('cityId는 null이 될 수 없습니다.');
         }
-        if (!validCitiesId.has(cityId)) {
+        if (cityId in validCitiesId) {
           throw new ConflictException(
             '해당 도시를 찾을 수 없습니다. : ' + cityId,
           );
@@ -208,7 +206,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      citiesId: citiesId,
+      eventCity: payload.eventCity,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,

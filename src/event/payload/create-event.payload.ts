@@ -6,6 +6,7 @@ import {
   IsString,
   Min,
 } from 'class-validator';
+import { CityData } from '../type/create-event-data.type';
 
 export class CreateEventPayload {
   @IsInt()
@@ -36,13 +37,13 @@ export class CreateEventPayload {
   })
   categoryId!: number;
 
-  @IsInt({ each: true })
   @ArrayNotEmpty()
   @ApiProperty({
-    description: '모임 도시들 ID',
-    type: [Number],
+    description: '모임 도시들',
+    type: Object,
+    isArray: true,
   })
-  citiesId!: number[];
+  eventCity!: CityData[];
 
   @IsDateString()
   @ApiProperty({

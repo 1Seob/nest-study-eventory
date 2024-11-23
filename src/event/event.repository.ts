@@ -13,60 +13,62 @@ export class EventRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(data: CreateEventData): Promise<EventData> {
-    const newEvent = await this.prisma.$transaction(async (prisma) => {
-      const createdEvent = await prisma.event.create({
-        data: {
-          hostId: data.hostId,
-          title: data.title,
-          description: data.description,
-          categoryId: data.categoryId,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          maxPeople: data.maxPeople,
-          eventJoin: {
-            create: {
-              userId: data.hostId,
-            },
+    const event = await this.prisma.event.create({
+      data: {
+        hostId: data.hostId,
+        title: data.title,
+        description: data.description,
+        categoryId: data.categoryId,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        maxPeople: data.maxPeople,
+        eventJoin: {
+          create: {
+            userId: data.hostId,
           },
         },
-        select: {
-          id: true,
-          hostId: true,
-          title: true,
-          description: true,
-          categoryId: true,
-          startTime: true,
-          endTime: true,
-          maxPeople: true,
-          eventJoin: {
-            select: {
-              id: true,
-              userId: true,
-            },
+        eventCity: {
+          createMany: {
+            data: data.eventCity.map((city) => ({
+              cityId: city.cityId,
+            })),
           },
         },
-      });
-      await prisma.eventCity.createMany({
-        data: data.citiesId.map((cityId) => ({
-          eventId: createdEvent.id,
-          cityId: cityId,
-        })),
-      });
-
-      return createdEvent;
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
+        eventJoin: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
+      },
     });
     const eventData: EventData = {
-      id: newEvent.id,
-      hostId: newEvent.hostId,
-      title: newEvent.title,
-      description: newEvent.description,
-      categoryId: newEvent.categoryId,
-      citiesId: data.citiesId,
-      startTime: newEvent.startTime,
-      endTime: newEvent.endTime,
-      maxPeople: newEvent.maxPeople,
+      id: event.id,
+      hostId: event.hostId,
+      title: event.title,
+      description: event.description,
+      categoryId: event.categoryId,
+      eventCity: data.eventCity,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      maxPeople: event.maxPeople,
     };
-
     return eventData;
   }
 
@@ -106,7 +108,7 @@ export class EventRepository {
   }
 
   async getEventById(eventId: number): Promise<EventData | null> {
-    const event = this.prisma.event.findUnique({
+    const event = await this.prisma.event.findUnique({
       where: {
         id: eventId,
       },
@@ -116,37 +118,32 @@ export class EventRepository {
         title: true,
         description: true,
         categoryId: true,
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
         startTime: true,
         endTime: true,
         maxPeople: true,
       },
     });
-    const newEvent = await event;
-    if (!newEvent) {
+    if (!event) {
       return null;
-    } else {
-      const eventData: EventData = {
-        id: newEvent.id,
-        hostId: newEvent.hostId,
-        title: newEvent.title,
-        description: newEvent.description,
-        categoryId: newEvent.categoryId,
-        citiesId: (
-          await this.prisma.eventCity.findMany({
-            where: {
-              eventId: eventId,
-            },
-            select: {
-              cityId: true,
-            },
-          })
-        ).map((city) => city.cityId),
-        startTime: newEvent.startTime,
-        endTime: newEvent.endTime,
-        maxPeople: newEvent.maxPeople,
-      };
-      return eventData;
     }
+    const eventData: EventData = {
+      id: event.id,
+      hostId: event.hostId,
+      title: event.title,
+      description: event.description,
+      categoryId: event.categoryId,
+      eventCity: event.eventCity,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      maxPeople: event.maxPeople,
+    };
+    return eventData;
   }
 
   async getEvents(query: EventQuery): Promise<EventData[]> {
@@ -164,40 +161,29 @@ export class EventRepository {
         title: true,
         description: true,
         categoryId: true,
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
         startTime: true,
         endTime: true,
         maxPeople: true,
       },
     });
-
-    const eventCities = await Promise.all(
-      events.map(async (event) => {
-        const cities = await this.prisma.eventCity.findMany({
-          where: {
-            eventId: event.id,
-          },
-          select: {
-            cityId: true,
-          },
-        });
-        return {
-          ...event,
-          citiesId: cities.map((city) => city.cityId),
-        };
-      }),
-    );
-
-    return eventCities.map((event) => ({
+    const eventData: EventData[] = events.map((event) => ({
       id: event.id,
       hostId: event.hostId,
       title: event.title,
       description: event.description,
       categoryId: event.categoryId,
-      citiesId: event.citiesId,
+      eventCity: event.eventCity,
       startTime: event.startTime,
       endTime: event.endTime,
       maxPeople: event.maxPeople,
     }));
+    return eventData;
   }
 
   async getNumberOfPeople(eventId: number): Promise<number> {
@@ -255,57 +241,61 @@ export class EventRepository {
     eventId: number,
     data: UpdateEventData,
   ): Promise<EventData> {
-    const citiesId = data.citiesId || [];
-    if (citiesId) {
-      await this.prisma.$transaction([
-        this.prisma.eventCity.deleteMany({
-          where: {
+    const eventCity = data.eventCity;
+    const event = await this.prisma.$transaction(async (prisma) => {
+      if (eventCity) {
+        await prisma.eventCity.deleteMany({
+          where: { eventId: eventId },
+        });
+
+        await prisma.eventCity.createMany({
+          data: eventCity.map((city) => ({
             eventId: eventId,
-          },
-        }),
-        this.prisma.eventCity.createMany({
-          data: citiesId.map((cityId) => ({
-            eventId: eventId,
-            cityId: cityId,
+            cityId: city.cityId,
           })),
-        }),
-      ]);
-    }
-    const updateEvent = this.prisma.event.update({
-      where: {
-        id: eventId,
-      },
-      data: {
-        title: data.title,
-        description: data.description,
-        categoryId: data.categoryId,
-        startTime: data.startTime,
-        endTime: data.endTime,
-        maxPeople: data.maxPeople,
-      },
-      select: {
-        id: true,
-        hostId: true,
-        title: true,
-        description: true,
-        categoryId: true,
-        startTime: true,
-        endTime: true,
-        maxPeople: true,
-      },
+        });
+      }
+
+      return prisma.event.update({
+        where: { id: eventId },
+        data: {
+          title: data.title,
+          description: data.description,
+          categoryId: data.categoryId,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          maxPeople: data.maxPeople,
+        },
+        select: {
+          id: true,
+          hostId: true,
+          title: true,
+          description: true,
+          categoryId: true,
+          eventCity: {
+            select: {
+              id: true,
+              cityId: true,
+            },
+          },
+          startTime: true,
+          endTime: true,
+          maxPeople: true,
+        },
+      });
     });
-    const eventData: EventData = {
-      id: (await updateEvent).id,
-      hostId: (await updateEvent).hostId,
-      title: (await updateEvent).title,
-      description: (await updateEvent).description,
-      categoryId: (await updateEvent).categoryId,
-      citiesId,
-      startTime: (await updateEvent).startTime,
-      endTime: (await updateEvent).endTime,
-      maxPeople: (await updateEvent).maxPeople,
+
+    return {
+      id: event.id,
+      hostId: event.hostId,
+      title: event.title,
+      description: event.description,
+      categoryId: event.categoryId,
+      eventCity: event.eventCity,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      maxPeople: event.maxPeople,
     };
-    return eventData;
   }
 
   async deleteEvent(eventId: number): Promise<void> {
