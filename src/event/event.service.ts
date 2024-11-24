@@ -43,16 +43,10 @@ export class EventService {
     if (!category) {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
-
-    for (const cityId of payload.cityIds) {
-      if (!cityId) {
-        throw new BadRequestException('cityId는 null이 될 수 없습니다.');
-      }
-    }
-    const ifCitiesIdValid = await this.eventRepository.ifCitiesIdValid(
+    const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
       payload.cityIds,
     );
-    if (!ifCitiesIdValid) {
+    if (!isCitiesIdValid) {
       throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
     }
 
@@ -168,15 +162,10 @@ export class EventService {
     if (payload.cityIds === null) {
       throw new BadRequestException('cityIds은 null이 될 수 없습니다.');
     } else if (payload.cityIds) {
-      for (const cityId of payload.cityIds) {
-        if (!cityId) {
-          throw new BadRequestException('cityId는 null이 될 수 없습니다.');
-        }
-      }
-      const ifCitiesIdValid = await this.eventRepository.ifCitiesIdValid(
+      const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
         payload.cityIds,
       );
-      if (!ifCitiesIdValid) {
+      if (!isCitiesIdValid) {
         throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
       }
     }

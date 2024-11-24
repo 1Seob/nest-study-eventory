@@ -86,7 +86,7 @@ export class EventRepository {
     });
   }
 
-  async ifCitiesIdValid(citiesId: number[]): Promise<boolean> {
+  async isCitiesIdValid(citiesId: number[]): Promise<boolean> {
     const cities = await this.prisma.city.findMany({
       where: {
         id: {
@@ -125,18 +125,7 @@ export class EventRepository {
     if (!event) {
       return null;
     }
-    const eventData: EventData = {
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: event.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-    };
-    return eventData;
+    return event;
   }
 
   async getEvents(query: EventQuery): Promise<EventData[]> {
