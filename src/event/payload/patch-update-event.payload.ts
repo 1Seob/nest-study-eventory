@@ -8,7 +8,6 @@ import {
 } from 'class-validator';
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { CityData } from '../type/create-event-data.type';
 
 export class PatchUpdateEventPaylaod {
   @IsOptional()
@@ -36,13 +35,13 @@ export class PatchUpdateEventPaylaod {
   categoryId?: number | null;
 
   @IsOptional()
+  @IsInt({ each: true })
   @ArrayNotEmpty()
   @ApiPropertyOptional({
-    description: '모임 도시들',
-    type: Object,
-    isArray: true,
+    description: '모임 도시 ID',
+    type: [Number],
   })
-  eventCity?: CityData[] | null;
+  cityIds?: number[] | null;
 
   @IsOptional()
   @IsDate()

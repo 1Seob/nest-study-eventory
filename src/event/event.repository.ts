@@ -29,8 +29,8 @@ export class EventRepository {
         },
         eventCity: {
           createMany: {
-            data: data.eventCity.map((city) => ({
-              cityId: city.cityId,
+            data: data.cityIds.map((cityId) => ({
+              cityId: cityId,
             })),
           },
         },
@@ -58,18 +58,7 @@ export class EventRepository {
         },
       },
     });
-    const eventData: EventData = {
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: data.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-    };
-    return eventData;
+    return event;
   }
 
   async getUserById(hostId: number): Promise<User | null> {
@@ -97,14 +86,18 @@ export class EventRepository {
     });
   }
 
-  async getVailidCitiesId(): Promise<number[]> {
-    return this.prisma.city
-      .findMany({
-        select: {
-          id: true,
+  async ifCitiesIdValid(citiesId: number[]): Promise<boolean> {
+    const cities = await this.prisma.city.findMany({
+      where: {
+        id: {
+          in: citiesId,
         },
-      })
-      .then((cities) => cities.map((city) => city.id));
+      },
+      select: {
+        id: true,
+      },
+    });
+    return cities.length === citiesId.length;
   }
 
   async getEventById(eventId: number): Promise<EventData | null> {
@@ -154,6 +147,13 @@ export class EventRepository {
           id: query.hostId,
         },
         categoryId: query.categoryId,
+        eventCity: {
+          some: {
+            cityId: {
+              in: query.cityIds,
+            },
+          },
+        },
       },
       select: {
         id: true,
@@ -241,17 +241,19 @@ export class EventRepository {
     eventId: number,
     data: UpdateEventData,
   ): Promise<EventData> {
-    const eventCity = data.eventCity;
+    const cityIds = data.cityIds;
     const event = await this.prisma.$transaction(async (prisma) => {
-      if (eventCity) {
+      if (cityIds) {
         await prisma.eventCity.deleteMany({
-          where: { eventId: eventId },
+          where: {
+            eventId: eventId,
+          },
         });
 
         await prisma.eventCity.createMany({
-          data: eventCity.map((city) => ({
+          data: cityIds.map((cityId) => ({
             eventId: eventId,
-            cityId: city.cityId,
+            cityId: cityId,
           })),
         });
       }

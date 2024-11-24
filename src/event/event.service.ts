@@ -26,7 +26,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      eventCity: payload.eventCity,
+      cityIds: payload.cityIds,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,
@@ -44,18 +44,16 @@ export class EventService {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
 
-    const validCitiesId = new Set(
-      await this.eventRepository.getVailidCitiesId(),
-    );
-    for (const cityId of payload.eventCity.map((city) => city.cityId)) {
+    for (const cityId of payload.cityIds) {
       if (!cityId) {
         throw new BadRequestException('cityId는 null이 될 수 없습니다.');
       }
-      if (cityId in validCitiesId) {
-        throw new ConflictException(
-          '해당 도시를 찾을 수 없습니다. : ' + cityId,
-        );
-      }
+    }
+    const ifCitiesIdValid = await this.eventRepository.ifCitiesIdValid(
+      payload.cityIds,
+    );
+    if (!ifCitiesIdValid) {
+      throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
     }
 
     if (createData.endTime < createData.startTime) {
@@ -167,23 +165,22 @@ export class EventService {
       }
     }
 
-    const validCitiesId = new Set(
-      await this.eventRepository.getVailidCitiesId(),
-    );
-    if (payload.eventCity === null) {
-      throw new BadRequestException('eventCity은 null이 될 수 없습니다.');
-    } else if (payload.eventCity) {
-      for (const cityId of payload.eventCity.map((city) => city.cityId)) {
+    if (payload.cityIds === null) {
+      throw new BadRequestException('cityIds은 null이 될 수 없습니다.');
+    } else if (payload.cityIds) {
+      for (const cityId of payload.cityIds) {
         if (!cityId) {
           throw new BadRequestException('cityId는 null이 될 수 없습니다.');
         }
-        if (cityId in validCitiesId) {
-          throw new ConflictException(
-            '해당 도시를 찾을 수 없습니다. : ' + cityId,
-          );
-        }
+      }
+      const ifCitiesIdValid = await this.eventRepository.ifCitiesIdValid(
+        payload.cityIds,
+      );
+      if (!ifCitiesIdValid) {
+        throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
       }
     }
+
     if (payload.startTime === null) {
       throw new BadRequestException('startTime은 null이 될 수 없습니다.');
     }
@@ -206,7 +203,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      eventCity: payload.eventCity,
+      cityIds: payload.cityIds,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,
