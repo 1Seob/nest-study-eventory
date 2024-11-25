@@ -13,7 +13,7 @@ export class EventRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createEvent(data: CreateEventData): Promise<EventData> {
-    const event = await this.prisma.event.create({
+    return await this.prisma.event.create({
       data: {
         hostId: data.hostId,
         title: data.title,
@@ -58,7 +58,6 @@ export class EventRepository {
         },
       },
     });
-    return event;
   }
 
   async getUserById(hostId: number): Promise<User | null> {
@@ -101,7 +100,7 @@ export class EventRepository {
   }
 
   async getEventById(eventId: number): Promise<EventData | null> {
-    const event = await this.prisma.event.findUnique({
+    return await this.prisma.event.findUnique({
       where: {
         id: eventId,
       },
@@ -122,14 +121,10 @@ export class EventRepository {
         maxPeople: true,
       },
     });
-    if (!event) {
-      return null;
-    }
-    return event;
   }
 
   async getEvents(query: EventQuery): Promise<EventData[]> {
-    const events = await this.prisma.event.findMany({
+    return await this.prisma.event.findMany({
       where: {
         host: {
           deletedAt: null,
@@ -161,18 +156,6 @@ export class EventRepository {
         maxPeople: true,
       },
     });
-    const eventData: EventData[] = events.map((event) => ({
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: event.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-    }));
-    return eventData;
   }
 
   async getNumberOfPeople(eventId: number): Promise<number> {
@@ -231,7 +214,7 @@ export class EventRepository {
     data: UpdateEventData,
   ): Promise<EventData> {
     const cityIds = data.cityIds;
-    const event = await this.prisma.$transaction(async (prisma) => {
+    return await this.prisma.$transaction(async (prisma) => {
       if (cityIds) {
         await prisma.eventCity.deleteMany({
           where: {
@@ -275,18 +258,6 @@ export class EventRepository {
         },
       });
     });
-
-    return {
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: event.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-    };
   }
 
   async deleteEvent(eventId: number): Promise<void> {

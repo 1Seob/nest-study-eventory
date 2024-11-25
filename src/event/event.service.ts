@@ -150,7 +150,8 @@ export class EventService {
     }
     if (payload.categoryId === null) {
       throw new BadRequestException('categoryId은 null이 될 수 없습니다.');
-    } else if (payload.categoryId) {
+    }
+    if (payload.categoryId) {
       const category = await this.eventRepository.getCategoryById(
         payload.categoryId,
       );
@@ -161,7 +162,8 @@ export class EventService {
 
     if (payload.cityIds === null) {
       throw new BadRequestException('cityIds은 null이 될 수 없습니다.');
-    } else if (payload.cityIds) {
+    }
+    if (payload.cityIds) {
       const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
         payload.cityIds,
       );

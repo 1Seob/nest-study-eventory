@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsInt, IsOptional } from 'class-validator';
-import { Type } from 'class-transformer';
+import { Type, Transform } from 'class-transformer';
 
 export class EventQuery {
   @IsOptional()
@@ -14,6 +14,9 @@ export class EventQuery {
 
   @IsOptional()
   @IsInt({ each: true })
+  @Transform(({ value }) =>
+    Array.isArray(value) ? value.map(Number) : [Number(value)],
+  )
   @Type(() => Number)
   @ApiPropertyOptional({
     description: '모임 도시 ID',
