@@ -26,7 +26,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      cityId: payload.cityId,
+      cityIds: payload.cityIds,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,
@@ -43,10 +43,11 @@ export class EventService {
     if (!category) {
       throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
     }
-
-    const city = await this.eventRepository.getCityById(payload.cityId);
-    if (!city) {
-      throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
+    const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
+      payload.cityIds,
+    );
+    if (!isCitiesIdValid) {
+      throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
     }
 
     if (createData.endTime < createData.startTime) {
@@ -149,7 +150,8 @@ export class EventService {
     }
     if (payload.categoryId === null) {
       throw new BadRequestException('categoryId은 null이 될 수 없습니다.');
-    } else if (payload.categoryId) {
+    }
+    if (payload.categoryId) {
       const category = await this.eventRepository.getCategoryById(
         payload.categoryId,
       );
@@ -157,14 +159,19 @@ export class EventService {
         throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
       }
     }
-    if (payload.cityId === null) {
-      throw new BadRequestException('cityId은 null이 될 수 없습니다.');
-    } else if (payload.cityId) {
-      const city = await this.eventRepository.getCityById(payload.cityId);
-      if (!city) {
-        throw new NotFoundException('해당 도시를 찾을 수 없습니다.');
+
+    if (payload.cityIds === null) {
+      throw new BadRequestException('cityIds은 null이 될 수 없습니다.');
+    }
+    if (payload.cityIds) {
+      const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
+        payload.cityIds,
+      );
+      if (!isCitiesIdValid) {
+        throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
       }
     }
+
     if (payload.startTime === null) {
       throw new BadRequestException('startTime은 null이 될 수 없습니다.');
     }
@@ -187,7 +194,7 @@ export class EventService {
       title: payload.title,
       description: payload.description,
       categoryId: payload.categoryId,
-      cityId: payload.cityId,
+      cityIds: payload.cityIds,
       startTime: payload.startTime,
       endTime: payload.endTime,
       maxPeople: payload.maxPeople,

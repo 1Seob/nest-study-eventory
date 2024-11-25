@@ -28,12 +28,12 @@ export class PatchUpdateEventPaylaod {
   categoryId?: number | null;
 
   @IsOptional()
-  @IsInt()
+  @IsInt({ each: true })
   @ApiPropertyOptional({
     description: '모임 도시 ID',
-    type: Number,
+    type: [Number],
   })
-  cityId?: number | null;
+  cityIds?: number[] | null;
 
   @IsOptional()
   @IsDate()
