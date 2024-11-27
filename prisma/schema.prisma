@@ -29,6 +29,8 @@ model User {
   event     Event[]
   eventJoin EventJoin[]
   review    Review[]
+  club      Club[]
+  clubJoin  ClubJoin[]
 
   city     City?    @relation(fields: [cityId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
@@ -63,7 +65,7 @@ model Event {
 
   host     User     @relation(fields: [hostId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
-  club     Club?    @relation(fileds: [clubId], references: [id])
+  club     Club?    @relation(fields: [clubId], references: [id])
 
   eventJoin EventJoin[]
   eventCity EventCity[]
@@ -155,6 +157,7 @@ model Club {
   host     User     @relation(fields: [hostId], references: [id])
 
   clubJoin ClubJoin[]
+  event    Event[]
 
   @@map("club")
 }
@@ -163,7 +166,7 @@ model ClubJoin {
   id        Int      @id @default(autoincrement())
   clubId    Int      @map("club_id")
   userId    Int      @map("user_id")
-  status    Status   @default(APPLICANT)
+  status    ClubJoinStatus   @default(APPLICANT)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
