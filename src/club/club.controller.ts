@@ -1,21 +1,9 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  HttpCode,
-  Param,
-  Patch,
-  Post,
-  Query,
-  UseGuards,
-} from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiOperation,
-  ApiOkResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { ClubDto } from './dto/club.dto';
