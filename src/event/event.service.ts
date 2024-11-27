@@ -34,7 +34,7 @@ export class EventService {
       maxPeople: payload.maxPeople,
     };
 
-    const host = await this.eventRepository.getUserById(payload.hostId);
+    const host = await this.eventRepository.getUserById(user.id);
     if (!host) {
       throw new NotFoundException('해당 사용자를 찾을 수 없습니다.');
     }
