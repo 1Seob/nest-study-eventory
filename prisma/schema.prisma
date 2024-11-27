@@ -174,7 +174,9 @@ model ClubJoin {
   @@map("club_join")
 }
 
-enum Status {
-  MEMBER
-  APPLICANT
+enum ClubJoinStatus {
+  MEMBER     @map("MEMBER")
+  APPLICANT  @map("APPLICANT")
+
+  @@map("club_join_status")
 }
