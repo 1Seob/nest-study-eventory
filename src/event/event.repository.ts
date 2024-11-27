@@ -158,6 +158,34 @@ export class EventRepository {
     });
   }
 
+  async getEventsJoinedByUser(userId: number): Promise<EventData[]> {
+    return await this.prisma.event.findMany({
+      where: {
+        eventJoin: {
+          some: {
+            userId: userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
+      },
+    });
+  }
+
   async getNumberOfPeople(eventId: number): Promise<number> {
     return this.prisma.eventJoin.count({
       where: {

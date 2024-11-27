@@ -53,17 +53,18 @@
 링크를 통해 해당 Issue로 이동할 수 있습니다.
 
 - Auth 
-    - POST /sign-up **(Week5)**
-    - POST /login **(Week5)**
-    - POST /refresh **(Week5)**
+    - POST /sign-up [**(Week5)**](https://github.com/worjs/nest-study-eventory/issues/56)
+    - POST /login [**(Week5)**](https://github.com/worjs/nest-study-eventory/issues/57)
+    - POST /refresh [**(Week5)**](https://github.com/worjs/nest-study-eventory/issues/58)
+    - PUT /password [**(Week5-HW)**](https://github.com/worjs/nest-study-eventory/issues/66)
 - User
-    - GET /me **(Week5-HW)**
-    - GET /:userId **(Week5-HW)** 
+    - GET /:userId [**(Week5-HW)**](https://github.com/worjs/nest-study-eventory/issues/67)
+    - PATCH /:userId [**(Week5-HW)**](https://github.com/worjs/nest-study-eventory/issues/68)
     - DELETE /:userId [**(Week3)**](https://github.com/worjs/nest-study-eventory/issues/32)
     - User가 Category를 복수선택할 수 있도록, Schema 변경(Migration) [**(Week4)**](https://github.com/worjs/nest-study-eventory/issues/51) => main이 아닌 db/user-category branch에서 확인 가능.
 - Event
     - GET / [**(Week2-HW)**](https://github.com/worjs/nest-study-eventory/issues/17)
-    - GET /me **(Week5-HW)**
+    - GET /me [**(Week5-HW)**](https://github.com/worjs/nest-study-eventory/issues/65)
     - GET /:eventId [**(Week2-HW)**](https://github.com/worjs/nest-study-eventory/issues/16)
     - POST / [**(Week2-HW)**](https://github.com/worjs/nest-study-eventory/issues/14)
     - PUT or PATCH /:eventId [**(Week3-HW)**](https://github.com/worjs/nest-study-eventory/issues/33)
@@ -72,6 +73,7 @@
     - POST /:eventId/out [**(Week2-HW)**](https://github.com/worjs/nest-study-eventory/issues/19)
     - **(필수)** User Soft Delete에 따른 Repository 구현 변경 [**(Week3-HW)**](https://github.com/worjs/nest-study-eventory/issues/36)
     - Event가 City를 복수선택할 수 있도록, Schema 변경(Migration) [**(Week4-HW)**](https://github.com/worjs/nest-study-eventory/issues/51)
+    - Event 모듈에 인증 로직 반영 [**(Week5-HW)**](https://github.com/worjs/nest-study-eventory/issues/62)
 - Review
     - GET / [**(Week2)**](https://github.com/worjs/nest-study-eventory/issues/12)
     - GET /:reviewId [**(Week2)**](https://github.com/worjs/nest-study-eventory/issues/11)
@@ -79,6 +81,7 @@
     - PUT /:reviewId [**(Week3)**](https://github.com/worjs/nest-study-eventory/issues/28)
     - PATCH /:reviewId [**(Week3)**](https://github.com/worjs/nest-study-eventory/issues/29)
     - DELETE /:reviewId [**(Week3)**](https://github.com/worjs/nest-study-eventory/issues/30)
+    - Review 모듈에 인증 로직 반영 [**(Week5)**](https://github.com/worjs/nest-study-eventory/issues/63)
 - Region 
     - GET / [**(Week1)**](https://github.com/worjs/nest-study-eventory/issues/6)
       [**(Week2-HW)**](https://github.com/worjs/nest-study-eventory/issues/9)
