@@ -9,7 +9,7 @@ export class ClubRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createClub(data: CreateClubData): Promise<ClubData> {
-    return await this.prisma.club.create({
+    const club = await this.prisma.club.create({
       data: {
         hostId: data.hostId,
         title: data.title,
@@ -35,5 +35,13 @@ export class ClubRepository {
         },
       },
     });
+    return {
+      id: club.id,
+      hostId: club.hostId,
+      title: club.title,
+      description: club.description,
+      maxPeople: club.maxPeople,
+      members: club.clubJoin.map((join) => join.userId),
+    };
   }
 }

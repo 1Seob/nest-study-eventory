@@ -4,4 +4,5 @@ export type ClubData = {
   title: string;
   description: string;
   maxPeople: number;
+  members: number[];
 };
