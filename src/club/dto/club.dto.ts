@@ -41,4 +41,22 @@ export class ClubDto {
       maxPeople: club.maxPeople,
     };
   }
+
+  static fromArray(clubs: ClubData[]): ClubDto[] {
+    return clubs.map((club) => this.from(club));
+  }
+}
+
+export class ClubListDto {
+  @ApiProperty({
+    description: '클럽 리스트',
+    type: [ClubDto],
+  })
+  clubs!: ClubDto[];
+
+  static from(clubs: ClubData[]): ClubListDto {
+    return {
+      clubs: ClubDto.fromArray(clubs),
+    };
+  }
 }

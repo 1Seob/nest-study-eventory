@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateClubData } from './type/create-club-data.type';
 import { ClubData } from './type/club-data.type';
+import { ClubJoinStatus } from '@prisma/client';
 
 @Injectable()
 export class ClubRepository {
@@ -17,7 +18,7 @@ export class ClubRepository {
         clubJoin: {
           create: {
             userId: data.hostId,
-            status: 'MEMBER',
+            status: ClubJoinStatus.MEMBER,
           },
         },
       },
@@ -29,7 +30,6 @@ export class ClubRepository {
         maxPeople: true,
         clubJoin: {
           select: {
-            id: true,
             userId: true,
           },
         },
