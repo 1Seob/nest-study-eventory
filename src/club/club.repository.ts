@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateClubData } from './type/create-club-data.type';
-import { ClubData, MemberData } from './type/club-data.type';
+import { ClubData } from './type/club-data.type';
 import { ClubJoinStatus } from '@prisma/client';
 
 @Injectable()
