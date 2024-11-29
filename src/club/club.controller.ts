@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Param, Post, UseGuards } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
   ApiBearerAuth,
@@ -11,6 +11,10 @@ import { CreateClubPayload } from './payload/create-club.payload';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
+import { ClubEventDto } from './dto/club-event.dto';
+import { CreateEventPayload } from '../event/payload/create-event.payload';
+import { ClubReviewDto } from './dto/club-review.dto';
+import { CreateReviewPayload } from 'src/review/payload/create-review.payload';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -27,5 +31,39 @@ export class ClubController {
     @CurrentUser() user: UserBaseInfo,
   ): Promise<ClubDto> {
     return this.clubService.createClub(createClubPayload, user);
+  }
+
+  @Post(':clubId/events')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '새로운 클럽 모임을 추가합니다' })
+  @ApiCreatedResponse({ type: ClubEventDto })
+  async createClubEvent(
+    @Param('clubId') clubId: number,
+    @Body() createClubEventPayload: CreateEventPayload,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<ClubEventDto> {
+    return this.clubService.createClubEvent(
+      clubId,
+      createClubEventPayload,
+      user,
+    );
+  }
+
+  @Post(':clubId/reviews')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '클럽 모임 리뷰를 생성합니다' })
+  @ApiCreatedResponse({ type: ClubReviewDto })
+  async createClubReview(
+    @Param('clubId') clubId: number,
+    @Body() createClubReviewPayload: CreateReviewPayload,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<ClubReviewDto> {
+    return this.clubService.createClubReview(
+      clubId,
+      createClubReviewPayload,
+      user,
+    );
   }
 }
