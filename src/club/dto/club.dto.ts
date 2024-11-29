@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { ClubData } from '../type/club-data.type';
+import { ClubData, MemberData } from '../type/club-data.type';
 
 export class ClubDto {
   @ApiProperty({
@@ -33,10 +33,11 @@ export class ClubDto {
   maxPeople!: number;
 
   @ApiProperty({
-    description: '클럽 멤버들 ID',
-    type: [Number],
+    description: '클럽 멤버들',
+    type: Object,
+    isArray: true,
   })
-  members!: number[];
+  clubJoin!: MemberData[];
 
   static from(club: ClubData): ClubDto {
     return {
@@ -45,7 +46,7 @@ export class ClubDto {
       title: club.title,
       description: club.description,
       maxPeople: club.maxPeople,
-      members: club.members,
+      clubJoin: club.clubJoin,
     };
   }
 
