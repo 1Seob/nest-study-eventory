@@ -37,7 +37,7 @@ export class ClubDto {
     type: Object,
     isArray: true,
   })
-  clubJoin!: MemberData[];
+  members!: MemberData[];
 
   static from(club: ClubData): ClubDto {
     return {
@@ -46,7 +46,10 @@ export class ClubDto {
       title: club.title,
       description: club.description,
       maxPeople: club.maxPeople,
-      clubJoin: club.clubJoin,
+      members: club.members.map((member) => ({
+        userId: member.userId,
+        status: member.status,
+      })),
     };
   }
 

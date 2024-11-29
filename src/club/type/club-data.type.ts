@@ -11,5 +11,5 @@ export type ClubData = {
   title: string;
   description: string;
   maxPeople: number;
-  clubJoin: MemberData[];
+  members: MemberData[];
 };
