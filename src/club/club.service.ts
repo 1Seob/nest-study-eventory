@@ -138,11 +138,11 @@ export class ClubService {
     if (club.hostId !== user.id) {
       throw new ConflictException('클럽장만 가입 신청자를 승인할 수 있습니다.');
     }
-    const isAppliedClub = await this.clubRepository.isAppliedClub(
+    const isClubApplicant = await this.clubRepository.isClubApplicant(
       userId,
       clubId,
     );
-    if (!isAppliedClub) {
+    if (!isClubApplicant) {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
     const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
@@ -168,11 +168,11 @@ export class ClubService {
     if (club.hostId !== user.id) {
       throw new ConflictException('클럽장만 가입 신청자를 거절할 수 있습니다.');
     }
-    const isAppliedClub = await this.clubRepository.isAppliedClub(
+    const isClubApplicant = await this.clubRepository.isClubApplicant(
       userId,
       clubId,
     );
-    if (!isAppliedClub) {
+    if (!isClubApplicant) {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
     await this.clubRepository.rejectApplicant(clubId, userId);

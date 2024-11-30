@@ -178,7 +178,7 @@ export class ClubRepository {
     });
   }
 
-  async isAppliedClub(userId: number, clubId: number): Promise<boolean> {
+  async isClubApplicant(userId: number, clubId: number): Promise<boolean> {
     const clubJoin = await this.prisma.clubJoin.findFirst({
       where: {
         userId,
