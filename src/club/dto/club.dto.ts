@@ -46,7 +46,7 @@ export class ClubDto {
       title: club.title,
       description: club.description,
       maxPeople: club.maxPeople,
-      members: club.members.map((member) => ({
+      members: club.clubJoin.map((member) => ({
         userId: member.userId,
         status: member.status,
       })),
