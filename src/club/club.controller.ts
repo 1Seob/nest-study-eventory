@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  UseGuards,
+  HttpCode,
+} from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
   ApiBearerAuth,
@@ -14,7 +22,7 @@ import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { ClubEventDto } from './dto/club-event.dto';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
-import { ApplicantDto } from './dto/applicant.dto';
+import { ApplicantListDto } from './dto/applicantlist.dto';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -55,6 +63,7 @@ export class ClubController {
   @ApiBearerAuth()
   @ApiOperation({ summary: '클럽에 가입 신청을 합니다' })
   @ApiNoContentResponse()
+  @HttpCode(204)
   async applyClub(
     @Param('clubId') clubId: number,
     @CurrentUser() user: UserBaseInfo,
@@ -66,11 +75,11 @@ export class ClubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '클럽 가입 신청자들을 조회합니다' })
-  @ApiCreatedResponse({ type: ApplicantDto })
+  @ApiCreatedResponse({ type: ApplicantListDto })
   async getApplicants(
     @Param('clubId') clubId: number,
     @CurrentUser() user: UserBaseInfo,
-  ): Promise<ApplicantDto> {
+  ): Promise<ApplicantListDto> {
     return this.clubService.getApplicants(clubId, user);
   }
 }

@@ -135,6 +135,9 @@ export class ClubRepository {
       where: {
         clubId,
         status: ClubJoinStatus.MEMBER,
+        user: {
+          deletedAt: null,
+        },
       },
     });
   }
@@ -154,6 +157,9 @@ export class ClubRepository {
       where: {
         clubId,
         status: ClubJoinStatus.APPLICANT,
+        user: {
+          deletedAt: null,
+        },
       },
       select: {
         userId: true,

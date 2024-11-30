@@ -9,7 +9,7 @@ import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
-import { ApplicantDto } from './dto/applicant.dto';
+import { ApplicantListDto } from './dto/applicantlist.dto';
 
 @Injectable()
 export class ClubService {
@@ -109,7 +109,7 @@ export class ClubService {
   async getApplicants(
     clubId: number,
     user: UserBaseInfo,
-  ): Promise<ApplicantDto> {
+  ): Promise<ApplicantListDto> {
     const club = await this.clubRepository.getClubById(clubId);
     if (!club) {
       throw new NotFoundException('존재하지 않는 클럽입니다.');
@@ -118,6 +118,6 @@ export class ClubService {
       throw new ConflictException('클럽장만 가입 신청자를 조회할 수 있습니다.');
     }
     const applicants = await this.clubRepository.getApplicants(clubId);
-    return ApplicantDto.from(applicants);
+    return ApplicantListDto.from(applicants);
   }
 }
