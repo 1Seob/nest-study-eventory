@@ -13,8 +13,6 @@ import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { ClubEventDto } from './dto/club-event.dto';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
-import { ClubReviewDto } from './dto/club-review.dto';
-import { CreateReviewPayload } from 'src/review/payload/create-review.payload';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -46,23 +44,6 @@ export class ClubController {
     return this.clubService.createClubEvent(
       clubId,
       createClubEventPayload,
-      user,
-    );
-  }
-
-  @Post(':clubId/reviews')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '클럽 모임 리뷰를 생성합니다' })
-  @ApiCreatedResponse({ type: ClubReviewDto })
-  async createClubReview(
-    @Param('clubId') clubId: number,
-    @Body() createClubReviewPayload: CreateReviewPayload,
-    @CurrentUser() user: UserBaseInfo,
-  ): Promise<ClubReviewDto> {
-    return this.clubService.createClubReview(
-      clubId,
-      createClubReviewPayload,
       user,
     );
   }
