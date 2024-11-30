@@ -10,6 +10,7 @@ import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ClubService {
@@ -119,5 +120,61 @@ export class ClubService {
     }
     const applicants = await this.clubRepository.getApplicants(clubId);
     return ApplicantListDto.from(applicants);
+  }
+
+  async approveApplicant(
+    clubId: number,
+    userId: number,
+    user: UserBaseInfo,
+  ): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    const applicant = await this.clubRepository.getUserById(userId);
+    if (!applicant) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 가입 신청자를 승인할 수 있습니다.');
+    }
+    const isAppliedClub = await this.clubRepository.isAppliedClub(
+      userId,
+      clubId,
+    );
+    if (!isAppliedClub) {
+      throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
+    }
+    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    if (memberNumber >= club.maxPeople) {
+      throw new ConflictException('클럽의 정원이 가득 찼습니다.');
+    }
+    await this.clubRepository.approveApplicant(clubId, userId);
+  }
+
+  async rejectApplicant(
+    clubId: number,
+    userId: number,
+    user: UserBaseInfo,
+  ): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    const applicant = await this.clubRepository.getUserById(userId);
+    if (!applicant) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 가입 신청자를 거절할 수 있습니다.');
+    }
+    const isAppliedClub = await this.clubRepository.isAppliedClub(
+      userId,
+      clubId,
+    );
+    if (!isAppliedClub) {
+      throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
+    }
+    await this.clubRepository.rejectApplicant(clubId, userId);
   }
 }

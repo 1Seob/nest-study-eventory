@@ -74,12 +74,40 @@ export class ClubController {
   @Get(':clubId/applicants')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: '클럽 가입 신청자들을 조회합니다' })
+  @ApiOperation({ summary: '(클럽장) 클럽 가입 신청자들을 조회합니다' })
   @ApiCreatedResponse({ type: ApplicantListDto })
   async getApplicants(
     @Param('clubId') clubId: number,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<ApplicantListDto> {
     return this.clubService.getApplicants(clubId, user);
+  }
+
+  @Post(':clubId/applicants/:userId/approve')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '(클럽장) 클럽 가입 신청자를 승인합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async acceptApplicant(
+    @Param('clubId') clubId: number,
+    @Param('userId') userId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.approveApplicant(clubId, userId, user);
+  }
+
+  @Post(':clubId/applicants/:userId/reject')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '(클럽장) 클럽 가입 신청자를 거절합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async rejectApplicant(
+    @Param('clubId') clubId: number,
+    @Param('userId') userId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.rejectApplicant(clubId, userId, user);
   }
 }
