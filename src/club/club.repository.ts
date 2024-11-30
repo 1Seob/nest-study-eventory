@@ -11,7 +11,7 @@ export class ClubRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async createClub(data: CreateClubData): Promise<ClubData> {
-    const club = await this.prisma.club.create({
+    return await this.prisma.club.create({
       data: {
         hostId: data.hostId,
         title: data.title,
@@ -38,17 +38,6 @@ export class ClubRepository {
         },
       },
     });
-    return {
-      id: club.id,
-      hostId: club.hostId,
-      title: club.title,
-      description: club.description,
-      maxPeople: club.maxPeople,
-      members: club.clubJoin.map((join) => ({
-        userId: join.userId,
-        status: join.status,
-      })),
-    };
   }
 
   async createClubEvent(data: CreateClubEventData): Promise<EventData> {
@@ -101,7 +90,7 @@ export class ClubRepository {
   }
 
   async getClubById(id: number): Promise<ClubData | null> {
-    const club = await this.prisma.club.findUnique({
+    return await this.prisma.club.findUnique({
       where: { id },
       select: {
         id: true,
@@ -117,20 +106,6 @@ export class ClubRepository {
         },
       },
     });
-    if (!club) {
-      return null;
-    }
-    return {
-      id: club.id,
-      hostId: club.hostId,
-      title: club.title,
-      description: club.description,
-      maxPeople: club.maxPeople,
-      members: club.clubJoin.map((join) => ({
-        userId: join.userId,
-        status: join.status,
-      })),
-    };
   }
 
   async isUserJoinedClub(userId: number, clubId: number): Promise<boolean> {

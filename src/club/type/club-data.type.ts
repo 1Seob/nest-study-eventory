@@ -6,7 +6,7 @@ export type ClubData = {
   title: string;
   description: string;
   maxPeople: number;
-  members: {
+  clubJoin: {
     userId: number;
     status: ClubJoinStatus;
   }[];

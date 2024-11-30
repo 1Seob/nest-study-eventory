@@ -88,18 +88,7 @@ export class ClubService {
     }
 
     const event = await this.clubRepository.createClubEvent(createData);
-    return {
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: event.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-      clubId,
-    };
+    return ClubEventDto.from(event, clubId);
   }
 
   async createClubReview(
