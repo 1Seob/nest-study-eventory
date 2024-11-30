@@ -5,6 +5,7 @@ import { ClubData } from './type/club-data.type';
 import { ClubJoinStatus } from '@prisma/client';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventData } from '../event/type/event-data.type';
+import { ApplicantData } from './type/applicant-data.type';
 
 @Injectable()
 export class ClubRepository {
@@ -108,11 +109,12 @@ export class ClubRepository {
     });
   }
 
-  async isUserJoinedClub(userId: number, clubId: number): Promise<boolean> {
+  async isUserClubMember(userId: number, clubId: number): Promise<boolean> {
     const clubJoin = await this.prisma.clubJoin.findFirst({
       where: {
         userId,
         clubId,
+        status: ClubJoinStatus.MEMBER,
       },
     });
     return !!clubJoin;
@@ -126,5 +128,43 @@ export class ClubRepository {
       },
     });
     return !!event;
+  }
+
+  async getClubMemberNumber(clubId: number): Promise<number> {
+    return await this.prisma.clubJoin.count({
+      where: {
+        clubId,
+        status: ClubJoinStatus.MEMBER,
+        user: {
+          deletedAt: null,
+        },
+      },
+    });
+  }
+
+  async applyClub(userId: number, clubId: number): Promise<void> {
+    await this.prisma.clubJoin.create({
+      data: {
+        userId,
+        clubId,
+        status: ClubJoinStatus.APPLICANT,
+      },
+    });
+  }
+
+  async getApplicants(clubId: number): Promise<ApplicantData[]> {
+    return await this.prisma.clubJoin.findMany({
+      where: {
+        clubId,
+        status: ClubJoinStatus.APPLICANT,
+        user: {
+          deletedAt: null,
+        },
+      },
+      select: {
+        userId: true,
+        status: true,
+      },
+    });
   }
 }

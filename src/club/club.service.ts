@@ -9,6 +9,7 @@ import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
+import { ApplicantListDto } from './dto/applicantlist.dto';
 
 @Injectable()
 export class ClubService {
@@ -48,11 +49,11 @@ export class ClubService {
       clubId,
     };
 
-    const isUserJoinedClub = await this.clubRepository.isUserJoinedClub(
-      user.id,
+    const isUserClubMember = await this.clubRepository.isUserClubMember(
       clubId,
+      user.id,
     );
-    if (!isUserJoinedClub) {
+    if (!isUserClubMember) {
       throw new NotFoundException(
         '클럽에 가입한 사용자만 해당 클럽의 전용 모임을 생성할 수 있습니다.',
       );
@@ -84,5 +85,39 @@ export class ClubService {
 
     const event = await this.clubRepository.createClubEvent(createData);
     return ClubEventDto.from(event, clubId);
+  }
+
+  async applyClub(clubId: number, user: UserBaseInfo): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다');
+    }
+    const isUserClubMember = await this.clubRepository.isUserClubMember(
+      user.id,
+      clubId,
+    );
+    if (isUserClubMember) {
+      throw new ConflictException('이미 해당 클럽에 가입되어 있습니다.');
+    }
+    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    if (memberNumber >= club.maxPeople) {
+      throw new ConflictException('클럽의 정원이 가득 찼습니다.');
+    }
+    await this.clubRepository.applyClub(user.id, clubId);
+  }
+
+  async getApplicants(
+    clubId: number,
+    user: UserBaseInfo,
+  ): Promise<ApplicantListDto> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 가입 신청자를 조회할 수 있습니다.');
+    }
+    const applicants = await this.clubRepository.getApplicants(clubId);
+    return ApplicantListDto.from(applicants);
   }
 }
