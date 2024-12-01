@@ -6,6 +6,7 @@ import { ClubJoinStatus } from '@prisma/client';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventData } from '../event/type/event-data.type';
 import { ApplicantData } from './type/applicant-data.type';
+import { User } from '@prisma/client';
 
 @Injectable()
 export class ClubRepository {
@@ -164,6 +165,54 @@ export class ClubRepository {
       select: {
         userId: true,
         status: true,
+      },
+    });
+  }
+
+  async getUserById(hostId: number): Promise<User | null> {
+    return this.prisma.user.findFirst({
+      where: {
+        id: hostId,
+        deletedAt: null,
+      },
+    });
+  }
+
+  async isClubApplicant(userId: number, clubId: number): Promise<boolean> {
+    const clubJoin = await this.prisma.clubJoin.findFirst({
+      where: {
+        userId,
+        clubId,
+        status: ClubJoinStatus.APPLICANT,
+        user: {
+          deletedAt: null,
+        },
+      },
+    });
+    return !!clubJoin;
+  }
+
+  async approveApplicant(clubId: number, userId: number): Promise<void> {
+    await this.prisma.clubJoin.update({
+      where: {
+        clubId_userId: {
+          clubId,
+          userId,
+        },
+      },
+      data: {
+        status: ClubJoinStatus.MEMBER,
+      },
+    });
+  }
+
+  async rejectApplicant(clubId: number, userId: number): Promise<void> {
+    await this.prisma.clubJoin.delete({
+      where: {
+        clubId_userId: {
+          clubId,
+          userId,
+        },
       },
     });
   }
