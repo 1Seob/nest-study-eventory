@@ -10,12 +10,12 @@ import { ClubDto } from './dto/club.dto';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { CreateClubData } from './type/create-club-data.type';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
-import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { PatchUpdateEventPaylaod } from '../event/payload/patch-update-event.payload';
 import { UpdateEventData } from 'src/event/type/update-event-data.type';
+import { EventDto } from '../event/dto/event.dto';
 
 @Injectable()
 export class ClubService {
@@ -42,7 +42,7 @@ export class ClubService {
     clubId: number,
     payload: CreateEventPayload,
     user: UserBaseInfo,
-  ): Promise<ClubEventDto> {
+  ): Promise<EventDto> {
     const createData: CreateClubEventData = {
       hostId: user.id,
       title: payload.title,
@@ -56,8 +56,8 @@ export class ClubService {
     };
 
     const isUserClubMember = await this.clubRepository.isUserClubMember(
-      clubId,
       user.id,
+      clubId,
     );
     if (!isUserClubMember) {
       throw new NotFoundException(
@@ -90,7 +90,7 @@ export class ClubService {
     }
 
     const event = await this.clubRepository.createClubEvent(createData);
-    return ClubEventDto.from(event, clubId);
+    return EventDto.fromWithClub(event, clubId);
   }
 
   async applyClub(clubId: number, user: UserBaseInfo): Promise<void> {
@@ -183,11 +183,11 @@ export class ClubService {
     await this.clubRepository.rejectApplicant(clubId, userId);
   }
 
-  async patchUpdateClubEvent(
+  async patchUpdateEvent(
     eventId: number,
     payload: PatchUpdateEventPaylaod,
     user: UserBaseInfo,
-  ): Promise<ClubEventDto> {
+  ): Promise<EventDto> {
     if (payload.title === null) {
       throw new BadRequestException('title은 null이 될 수 없습니다.');
     }
@@ -290,11 +290,11 @@ export class ClubService {
         );
       }
     }
-    const updatedEvent = await this.clubRepository.updateClubEvent(
+    const updatedEvent = await this.eventRepository.updateEvent(
       eventId,
       updateData,
     );
-    return ClubEventDto.from(updatedEvent, club.id);
+    return EventDto.fromWithClub(updatedEvent, club.id);
   }
 
   async deleteClubEvent(eventId: number, user: UserBaseInfo): Promise<void> {

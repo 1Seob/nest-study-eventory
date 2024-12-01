@@ -22,10 +22,10 @@ import { CreateClubPayload } from './payload/create-club.payload';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
-import { ClubEventDto } from './dto/club-event.dto';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { PatchUpdateEventPaylaod } from '../event/payload/patch-update-event.payload';
+import { EventDto } from '../event/dto/event.dto';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -48,12 +48,12 @@ export class ClubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '새로운 클럽 모임을 추가합니다' })
-  @ApiCreatedResponse({ type: ClubEventDto })
+  @ApiCreatedResponse({ type: EventDto })
   async createClubEvent(
     @Param('clubId') clubId: number,
     @Body() createClubEventPayload: CreateEventPayload,
     @CurrentUser() user: UserBaseInfo,
-  ): Promise<ClubEventDto> {
+  ): Promise<EventDto> {
     return this.clubService.createClubEvent(
       clubId,
       createClubEventPayload,
@@ -65,13 +65,13 @@ export class ClubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '클럽 모임을 수정합니다' })
-  @ApiCreatedResponse({ type: ClubEventDto })
+  @ApiCreatedResponse({ type: EventDto })
   async patchUpdateClubEvent(
     @Param('eventId') eventId: number,
     @Body() payload: PatchUpdateEventPaylaod,
     @CurrentUser() user: UserBaseInfo,
-  ): Promise<ClubEventDto> {
-    return this.clubService.patchUpdateClubEvent(eventId, payload, user);
+  ): Promise<EventDto> {
+    return this.clubService.patchUpdateEvent(eventId, payload, user);
   }
 
   @Delete(':clubId/events/:eventId')
