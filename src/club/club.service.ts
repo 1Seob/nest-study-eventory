@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { ConflictException, NotFoundException } from '@nestjs/common';
+import {
+  ConflictException,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { ClubRepository } from './club.repository';
 import { CreateClubPayload } from './payload/create-club.payload';
 import { ClubDto } from './dto/club.dto';
@@ -10,7 +14,8 @@ import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
-import { User } from '@prisma/client';
+import { PatchUpdateEventPaylaod } from '../event/payload/patch-update-event.payload';
+import { UpdateEventData } from 'src/event/type/update-event-data.type';
 
 @Injectable()
 export class ClubService {
@@ -176,5 +181,137 @@ export class ClubService {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
     await this.clubRepository.rejectApplicant(clubId, userId);
+  }
+
+  async patchUpdateClubEvent(
+    eventId: number,
+    payload: PatchUpdateEventPaylaod,
+    user: UserBaseInfo,
+  ): Promise<ClubEventDto> {
+    if (payload.title === null) {
+      throw new BadRequestException('title은 null이 될 수 없습니다.');
+    }
+    if (payload.description === null) {
+      throw new BadRequestException('description은 null이 될 수 없습니다.');
+    }
+    if (payload.categoryId === null) {
+      throw new BadRequestException('categoryId은 null이 될 수 없습니다.');
+    }
+    if (payload.categoryId) {
+      const category = await this.eventRepository.getCategoryById(
+        payload.categoryId,
+      );
+      if (!category) {
+        throw new NotFoundException('해당 카테고리를 찾을 수 없습니다.');
+      }
+    }
+
+    if (payload.cityIds === null) {
+      throw new BadRequestException('cityIds은 null이 될 수 없습니다.');
+    }
+    if (payload.cityIds) {
+      const isCitiesIdValid = await this.eventRepository.isCitiesIdValid(
+        payload.cityIds,
+      );
+      if (!isCitiesIdValid) {
+        throw new NotFoundException('존재하지 않는 도시 ID가 있습니다.');
+      }
+    }
+
+    if (payload.startTime === null) {
+      throw new BadRequestException('startTime은 null이 될 수 없습니다.');
+    }
+    if (payload.endTime === null) {
+      throw new BadRequestException('endTime은 null이 될 수 없습니다.');
+    }
+    if (payload.maxPeople === null) {
+      throw new BadRequestException('maxPeople은 null이 될 수 없습니다.');
+    }
+    const event = await this.eventRepository.getEventById(eventId);
+    if (!event) {
+      throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
+    }
+    const club = await this.clubRepository.getClubByEventId(eventId);
+    if (!club) {
+      throw new NotFoundException('해당 모임은 클럽 전용 모임이 아닙니다.');
+    }
+    if (new Date() > event.startTime) {
+      throw new ConflictException(
+        '이미 시작된 모임의 정보를 변경할 수 없습니다.',
+      );
+    }
+    if (event.hostId !== user.id) {
+      throw new ConflictException(
+        '모임 주최자만 모임 정보를 변경할 수 있습니다.',
+      );
+    }
+    const updateData: UpdateEventData = {
+      title: payload.title,
+      description: payload.description,
+      categoryId: payload.categoryId,
+      cityIds: payload.cityIds,
+      startTime: payload.startTime,
+      endTime: payload.endTime,
+      maxPeople: payload.maxPeople,
+    };
+    if (updateData.startTime && !updateData.endTime) {
+      if (updateData.startTime > event.endTime) {
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 기존 종료 시간보다 늦을 수 없습니다.',
+        );
+      }
+      if (new Date() > updateData.startTime) {
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.',
+        );
+      }
+    }
+    if (updateData.endTime && !updateData.startTime) {
+      if (updateData.endTime < event.startTime) {
+        throw new ConflictException(
+          '변경될 모임 종료 시간이 기존 시작 시간보다 빠를 수 없습니다.',
+        );
+      }
+      if (new Date() > updateData.endTime) {
+        throw new ConflictException(
+          '변경될 모임 종료 시간이 현재 시간보다 늦어야 합니다.',
+        );
+      }
+    }
+    if (updateData.startTime && updateData.endTime) {
+      if (updateData.endTime < updateData.startTime) {
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 변경될 종료 시간보다 늦을 수 없습니다.',
+        );
+      }
+      if (updateData.startTime < new Date()) {
+        throw new ConflictException(
+          '변경될 모임 시작 시간이 현재 시간보다 늦어야 합니다.',
+        );
+      }
+    }
+    const updatedEvent = await this.clubRepository.updateClubEvent(
+      eventId,
+      updateData,
+    );
+    return ClubEventDto.from(updatedEvent, club.id);
+  }
+
+  async deleteClubEvent(eventId: number, user: UserBaseInfo): Promise<void> {
+    const club = await this.clubRepository.getClubByEventId(eventId);
+    if (!club) {
+      throw new NotFoundException('해당 모임은 클럽 전용 모임이 아닙니다.');
+    }
+    const event = await this.eventRepository.getEventById(eventId);
+    if (!event) {
+      throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
+    }
+    if (new Date() > event.startTime) {
+      throw new ConflictException('모임 시작 시간이 지났습니다.');
+    }
+    if (event.hostId !== user.id) {
+      throw new ConflictException('모임 주최자만 모임을 삭제할 수 있습니다.');
+    }
+    await this.eventRepository.deleteEvent(eventId);
   }
 }

@@ -7,6 +7,7 @@ import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventData } from '../event/type/event-data.type';
 import { ApplicantData } from './type/applicant-data.type';
 import { User } from '@prisma/client';
+import { UpdateEventData } from '../event/type/update-event-data.type';
 
 @Injectable()
 export class ClubRepository {
@@ -52,6 +53,7 @@ export class ClubRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         maxPeople: data.maxPeople,
+        clubId: data.clubId,
         eventJoin: {
           create: {
             userId: data.hostId,
@@ -64,7 +66,6 @@ export class ClubRepository {
             })),
           },
         },
-        clubId: data.clubId,
       },
       select: {
         id: true,
@@ -108,6 +109,30 @@ export class ClubRepository {
         },
       },
     });
+  }
+
+  async getClubByEventId(eventId: number): Promise<ClubData | null> {
+    return await this.prisma.event
+      .findUnique({
+        where: {
+          id: eventId,
+        },
+      })
+      .club({
+        select: {
+          id: true,
+          hostId: true,
+          title: true,
+          description: true,
+          maxPeople: true,
+          clubJoin: {
+            select: {
+              userId: true,
+              status: true,
+            },
+          },
+        },
+      });
   }
 
   async isUserClubMember(userId: number, clubId: number): Promise<boolean> {
@@ -214,6 +239,63 @@ export class ClubRepository {
           userId,
         },
       },
+    });
+  }
+
+  async updateClubEvent(
+    eventId: number,
+    data: UpdateEventData,
+  ): Promise<EventData> {
+    const cityIds = data.cityIds;
+    return await this.prisma.$transaction(async (prisma) => {
+      if (cityIds) {
+        await prisma.eventCity.deleteMany({
+          where: {
+            eventId,
+          },
+        });
+        await prisma.eventCity.createMany({
+          data: cityIds.map((cityId) => ({
+            eventId,
+            cityId,
+          })),
+        });
+      }
+      return prisma.event.update({
+        where: {
+          id: eventId,
+        },
+        data: {
+          title: data.title,
+          description: data.description,
+          categoryId: data.categoryId,
+          startTime: data.startTime,
+          endTime: data.endTime,
+          maxPeople: data.maxPeople,
+        },
+        select: {
+          id: true,
+          hostId: true,
+          title: true,
+          description: true,
+          categoryId: true,
+          startTime: true,
+          endTime: true,
+          maxPeople: true,
+          eventJoin: {
+            select: {
+              id: true,
+              userId: true,
+            },
+          },
+          eventCity: {
+            select: {
+              id: true,
+              cityId: true,
+            },
+          },
+        },
+      });
     });
   }
 }
