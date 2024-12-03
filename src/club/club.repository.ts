@@ -52,6 +52,7 @@ export class ClubRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         maxPeople: data.maxPeople,
+        clubId: data.clubId,
         eventJoin: {
           create: {
             userId: data.hostId,
@@ -64,7 +65,6 @@ export class ClubRepository {
             })),
           },
         },
-        clubId: data.clubId,
       },
       select: {
         id: true,
@@ -108,6 +108,30 @@ export class ClubRepository {
         },
       },
     });
+  }
+
+  async getClubByEventId(eventId: number): Promise<ClubData | null> {
+    return await this.prisma.event
+      .findUnique({
+        where: {
+          id: eventId,
+        },
+      })
+      .club({
+        select: {
+          id: true,
+          hostId: true,
+          title: true,
+          description: true,
+          maxPeople: true,
+          clubJoin: {
+            select: {
+              userId: true,
+              status: true,
+            },
+          },
+        },
+      });
   }
 
   async isUserClubMember(userId: number, clubId: number): Promise<boolean> {

@@ -6,11 +6,10 @@ import { ClubDto } from './dto/club.dto';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { CreateClubData } from './type/create-club-data.type';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
-import { ClubEventDto } from './dto/club-event.dto';
 import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
-import { User } from '@prisma/client';
+import { EventDto } from '../event/dto/event.dto';
 
 @Injectable()
 export class ClubService {
@@ -37,7 +36,7 @@ export class ClubService {
     clubId: number,
     payload: CreateEventPayload,
     user: UserBaseInfo,
-  ): Promise<ClubEventDto> {
+  ): Promise<EventDto> {
     const createData: CreateClubEventData = {
       hostId: user.id,
       title: payload.title,
@@ -51,8 +50,8 @@ export class ClubService {
     };
 
     const isUserClubMember = await this.clubRepository.isUserClubMember(
-      clubId,
       user.id,
+      clubId,
     );
     if (!isUserClubMember) {
       throw new NotFoundException(
@@ -85,7 +84,7 @@ export class ClubService {
     }
 
     const event = await this.clubRepository.createClubEvent(createData);
-    return ClubEventDto.from(event, clubId);
+    return EventDto.from(event);
   }
 
   async applyClub(clubId: number, user: UserBaseInfo): Promise<void> {
