@@ -7,7 +7,6 @@ import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventData } from '../event/type/event-data.type';
 import { ApplicantData } from './type/applicant-data.type';
 import { User } from '@prisma/client';
-import { UpdateEventData } from '../event/type/update-event-data.type';
 
 @Injectable()
 export class ClubRepository {

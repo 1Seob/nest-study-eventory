@@ -61,7 +61,7 @@ export class EventDto {
     description: '클럽 ID',
     type: Number,
   })
-  clubId?: number;
+  clubId?: number | null;
 
   static from(event: EventData): EventDto {
     return {
@@ -74,26 +74,12 @@ export class EventDto {
       startTime: event.startTime,
       endTime: event.endTime,
       maxPeople: event.maxPeople,
-    };
-  }
-
-  static fromWithClub(event: EventData, clubId: number): EventDto {
-    return {
-      id: event.id,
-      hostId: event.hostId,
-      title: event.title,
-      description: event.description,
-      categoryId: event.categoryId,
-      eventCity: event.eventCity,
-      startTime: event.startTime,
-      endTime: event.endTime,
-      maxPeople: event.maxPeople,
-      clubId: clubId,
+      clubId: event.clubId,
     };
   }
 
   static fromArray(events: EventData[]): EventDto[] {
-    return events.map((event) => this.from(event));
+    return events.map((event) => EventDto.from(event));
   }
 }
 

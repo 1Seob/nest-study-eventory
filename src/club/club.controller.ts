@@ -6,8 +6,6 @@ import {
   Post,
   UseGuards,
   HttpCode,
-  Patch,
-  Delete,
 } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
@@ -24,7 +22,6 @@ import { CurrentUser } from '../auth/decorator/user.decorator';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ApplicantListDto } from './dto/applicantlist.dto';
-import { PatchUpdateEventPaylaod } from '../event/payload/patch-update-event.payload';
 import { EventDto } from '../event/dto/event.dto';
 
 @Controller('clubs')
@@ -59,32 +56,6 @@ export class ClubController {
       createClubEventPayload,
       user,
     );
-  }
-
-  @Patch(':clubId/events/:eventId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '클럽 모임을 수정합니다' })
-  @ApiCreatedResponse({ type: EventDto })
-  async patchUpdateClubEvent(
-    @Param('eventId') eventId: number,
-    @Body() payload: PatchUpdateEventPaylaod,
-    @CurrentUser() user: UserBaseInfo,
-  ): Promise<EventDto> {
-    return this.clubService.patchUpdateEvent(eventId, payload, user);
-  }
-
-  @Delete(':clubId/events/:eventId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: '클럽 모임을 삭제합니다' })
-  @ApiNoContentResponse()
-  @HttpCode(204)
-  async deleteClubEvent(
-    @Param('eventId') eventId: number,
-    @CurrentUser() user: UserBaseInfo,
-  ): Promise<void> {
-    await this.clubService.deleteClubEvent(eventId, user);
   }
 
   @Post(':clubId/application')

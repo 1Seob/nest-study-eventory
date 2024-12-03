@@ -14,10 +14,14 @@ import { JoinEventData } from './type/join-event-data.type';
 import { OutEventData } from './type/out-event-data.type';
 import { UpdateEventData } from './type/update-event-data.type';
 import { UserBaseInfo } from 'src/auth/type/user-base-info.type';
+import { ClubRepository } from 'src/club/club.repository';
 
 @Injectable()
 export class EventService {
-  constructor(private readonly eventRepository: EventRepository) {}
+  constructor(
+    private readonly eventRepository: EventRepository,
+    private readonly clubRepository: ClubRepository,
+  ) {}
 
   async createEvent(
     payload: CreateEventPayload,
