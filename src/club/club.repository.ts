@@ -240,4 +240,35 @@ export class ClubRepository {
       },
     });
   }
+
+  async isUserClubEventHost(userId: number, clubId: number): Promise<boolean> {
+    const event = await this.prisma.event.findFirst({
+      where: {
+        hostId: userId,
+        clubId: clubId,
+      },
+    });
+    return !!event;
+  }
+
+  async leaveClub(clubId: number, userId: number): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.clubJoin.delete({
+        where: {
+          clubId_userId: {
+            clubId,
+            userId,
+          },
+        },
+      }),
+      this.prisma.eventJoin.deleteMany({
+        where: {
+          userId,
+          event: {
+            clubId,
+          },
+        },
+      }),
+    ]);
+  }
 }

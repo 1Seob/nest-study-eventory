@@ -176,4 +176,31 @@ export class ClubService {
     }
     await this.clubRepository.rejectApplicant(clubId, userId);
   }
+
+  async leaveClub(clubId: number, user: UserBaseInfo): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    const isUserClubMember = await this.clubRepository.isUserClubMember(
+      user.id,
+      clubId,
+    );
+    if (!isUserClubMember) {
+      throw new ConflictException('해당 클럽에 가입되어 있지 않습니다.');
+    }
+    if (user.id === club.hostId) {
+      throw new ConflictException('클럽장은 클럽에서 나갈 수 없습니다');
+    }
+    const isUserClubEventHost = await this.clubRepository.isUserClubEventHost(
+      user.id,
+      clubId,
+    );
+    if (isUserClubEventHost) {
+      throw new ConflictException(
+        '클럽에서 주최한 모임이 있어 클럽에서 나갈 수 없습니다',
+      );
+    }
+    await this.clubRepository.leaveClub(clubId, user.id);
+  }
 }

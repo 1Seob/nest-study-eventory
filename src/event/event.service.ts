@@ -98,6 +98,18 @@ export class EventService {
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
     }
+    const club = await this.clubRepository.getClubByEventId(eventId);
+    if (club) {
+      const isUserClubMember = await this.clubRepository.isUserClubMember(
+        user.id,
+        club.id,
+      );
+      if (!isUserClubMember) {
+        throw new ConflictException(
+          '해당 모임은 클럽 전용 모임입니다. 클럽에 가입하지 않은 사용자는 클럽 전용 모임에 참가할 수 없습니다.',
+        );
+      }
+    }
     const participantsNumber =
       await this.eventRepository.getNumberOfPeople(eventId);
     if (event.maxPeople <= participantsNumber) {

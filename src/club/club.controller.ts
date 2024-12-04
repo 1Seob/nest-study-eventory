@@ -71,6 +71,19 @@ export class ClubController {
     await this.clubService.applyClub(clubId, user);
   }
 
+  @Post(':clubId/leave')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '클럽에서 탈퇴합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async leaveClub(
+    @Param('clubId') clubId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.leaveClub(clubId, user);
+  }
+
   @Get(':clubId/applicants')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
