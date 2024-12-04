@@ -197,34 +197,27 @@ export class ClubService {
       user.id,
       clubId,
     );
-    let deleteEvents: number[] = [];
-    let outEvents: number[] = [];
+    let deleteEventsIds: number[] = [];
+    let outEventsIds: number[] = [];
     for (const event of events) {
       if (event.startTime < new Date() && new Date() < event.endTime) {
         throw new ConflictException(
           '이미 진행 중인 클럽 전용 모임이 있습니다.',
         );
       }
-      if (user.id === event.hostId && new Date() < event.startTime) {
-        deleteEvents.push(event.id);
+      if (new Date() > event.startTime) {
+        continue;
       }
-      const isUserJoinedEvent = await this.eventRepository.isUserJoinedEvent(
-        event.id,
-        user.id,
-      );
-      if (isUserJoinedEvent && new Date() < event.startTime) {
-        const data: OutEventData = {
-          userId: user.id,
-          eventId: event.id,
-        };
-        outEvents.push(event.id);
+      if (user.id === event.hostId) {
+        deleteEventsIds.push(event.id);
       }
+      outEventsIds.push(event.id);
     }
     await this.clubRepository.leaveClub(
       clubId,
       user.id,
-      deleteEvents,
-      outEvents,
+      deleteEventsIds,
+      outEventsIds,
     );
   }
 }

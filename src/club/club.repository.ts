@@ -241,16 +241,6 @@ export class ClubRepository {
     });
   }
 
-  async isUserClubEventHost(userId: number, clubId: number): Promise<boolean> {
-    const event = await this.prisma.event.findFirst({
-      where: {
-        hostId: userId,
-        clubId: clubId,
-      },
-    });
-    return !!event;
-  }
-
   async getClubEventsJoinByUser(
     userId: number,
     cludId: number,
@@ -293,15 +283,15 @@ export class ClubRepository {
   async leaveClub(
     clubId: number,
     userId: number,
-    deleteEvents: number[],
-    outEvents: number[],
+    deleteEventsIds: number[],
+    outEventsIds: number[],
   ): Promise<void> {
     await this.prisma.$transaction([
       this.prisma.eventJoin.deleteMany({
         where: {
           userId,
           eventId: {
-            in: outEvents,
+            in: outEventsIds,
           },
         },
       }),
@@ -316,7 +306,7 @@ export class ClubRepository {
       this.prisma.event.deleteMany({
         where: {
           id: {
-            in: deleteEvents,
+            in: deleteEventsIds,
           },
         },
       }),
