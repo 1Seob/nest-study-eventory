@@ -295,6 +295,14 @@ export class ClubRepository {
           },
         },
       }),
+      this.prisma.eventJoin.deleteMany({
+        where: {
+          userId,
+          eventId: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
       this.prisma.clubJoin.delete({
         where: {
           clubId_userId: {
