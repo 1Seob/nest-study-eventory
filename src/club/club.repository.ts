@@ -7,6 +7,7 @@ import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventData } from '../event/type/event-data.type';
 import { ApplicantData } from './type/applicant-data.type';
 import { User } from '@prisma/client';
+import { ClubQuery } from './query/club.query';
 
 @Injectable()
 export class ClubRepository {
@@ -274,6 +275,59 @@ export class ClubRepository {
           select: {
             id: true,
             cityId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getMyClubs(userId: number): Promise<ClubData[]> {
+    return await this.prisma.club.findMany({
+      where: {
+        clubJoin: {
+          some: {
+            userId,
+            status: ClubJoinStatus.MEMBER,
+          },
+        },
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        maxPeople: true,
+        clubJoin: {
+          select: {
+            userId: true,
+            status: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getClubs(query: ClubQuery): Promise<ClubData[]> {
+    return await this.prisma.club.findMany({
+      where: {
+        host: {
+          deletedAt: null,
+          id: query.hostId,
+        },
+        title: {
+          contains: query.title,
+        },
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        maxPeople: true,
+        clubJoin: {
+          select: {
+            userId: true,
+            status: true,
           },
         },
       },

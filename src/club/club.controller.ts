@@ -7,6 +7,7 @@ import {
   UseGuards,
   HttpCode,
   ParseIntPipe,
+  Query,
 } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
@@ -16,7 +17,7 @@ import {
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
-import { ClubDto } from './dto/club.dto';
+import { ClubDto, ClubListDto } from './dto/club.dto';
 import { CreateClubPayload } from './payload/create-club.payload';
 import { JwtAuthGuard } from '../auth/guard/jwt-auth.guard';
 import { CurrentUser } from '../auth/decorator/user.decorator';
@@ -24,6 +25,7 @@ import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { EventDto } from '../event/dto/event.dto';
+import { ClubQuery } from './query/club.query';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -83,6 +85,31 @@ export class ClubController {
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     await this.clubService.leaveClub(clubId, user);
+  }
+
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '내가 가입한 클럽 목록을 조회합니다' })
+  @ApiCreatedResponse({ type: ClubListDto })
+  async getMyClubs(@CurrentUser() user: UserBaseInfo): Promise<ClubListDto> {
+    return this.clubService.getMyClubs(user);
+  }
+
+  @Get(':clubId')
+  @ApiOperation({ summary: '특정 클럽을 조회합니다' })
+  @ApiCreatedResponse({ type: ClubDto })
+  async getClubById(
+    @Param('clubId', ParseIntPipe) clubId: number,
+  ): Promise<ClubDto> {
+    return this.clubService.getClubById(clubId);
+  }
+
+  @Get()
+  @ApiOperation({ summary: '여러 클럽을 조회합니다' })
+  @ApiCreatedResponse({ type: ClubListDto })
+  async getClubs(@Query() query: ClubQuery): Promise<ClubListDto> {
+    return this.clubService.getClubs(query);
   }
 
   @Get(':clubId/applicants')

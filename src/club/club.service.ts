@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ClubRepository } from './club.repository';
 import { CreateClubPayload } from './payload/create-club.payload';
-import { ClubDto } from './dto/club.dto';
+import { ClubDto, ClubListDto } from './dto/club.dto';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { CreateClubData } from './type/create-club-data.type';
 import { CreateEventPayload } from '../event/payload/create-event.payload';
@@ -10,7 +10,7 @@ import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { EventDto } from '../event/dto/event.dto';
-import { OutEventData } from 'src/event/type/out-event-data.type';
+import { ClubQuery } from './query/club.query';
 
 @Injectable()
 export class ClubService {
@@ -243,5 +243,23 @@ export class ClubService {
       );
     }
     await this.clubRepository.delegateHost(clubId, userId);
+  }
+
+  async getMyClubs(user: UserBaseInfo): Promise<ClubListDto> {
+    const clubs = await this.clubRepository.getMyClubs(user.id);
+    return ClubListDto.from(clubs);
+  }
+
+  async getClubById(clubId: number): Promise<ClubDto> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    return ClubDto.from(club);
+  }
+
+  async getClubs(query: ClubQuery): Promise<ClubListDto> {
+    const clubs = await this.clubRepository.getClubs(query);
+    return ClubListDto.from(clubs);
   }
 }
