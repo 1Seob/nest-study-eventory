@@ -240,4 +240,83 @@ export class ClubRepository {
       },
     });
   }
+
+  async getClubEventsJoinByUser(
+    userId: number,
+    cludId: number,
+  ): Promise<EventData[]> {
+    return await this.prisma.event.findMany({
+      where: {
+        clubId: cludId,
+        eventJoin: {
+          some: {
+            userId,
+          },
+        },
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
+        clubId: true,
+        eventJoin: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
+      },
+    });
+  }
+
+  async leaveClub(
+    clubId: number,
+    userId: number,
+    deleteEventsIds: number[],
+    outEventsIds: number[],
+  ): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.eventJoin.deleteMany({
+        where: {
+          userId,
+          eventId: {
+            in: outEventsIds,
+          },
+        },
+      }),
+      this.prisma.eventJoin.deleteMany({
+        where: {
+          eventId: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
+      this.prisma.clubJoin.delete({
+        where: {
+          clubId_userId: {
+            clubId,
+            userId,
+          },
+        },
+      }),
+      this.prisma.event.deleteMany({
+        where: {
+          id: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
+    ]);
+  }
 }

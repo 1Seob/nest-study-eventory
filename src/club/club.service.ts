@@ -10,6 +10,7 @@ import { CreateClubEventData } from './type/create-club-event-data.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { EventDto } from '../event/dto/event.dto';
+import { OutEventData } from 'src/event/type/out-event-data.type';
 
 @Injectable()
 export class ClubService {
@@ -175,5 +176,48 @@ export class ClubService {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
     await this.clubRepository.rejectApplicant(clubId, userId);
+  }
+
+  async leaveClub(clubId: number, user: UserBaseInfo): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    const isUserClubMember = await this.clubRepository.isUserClubMember(
+      user.id,
+      clubId,
+    );
+    if (!isUserClubMember) {
+      throw new ConflictException('해당 클럽에 가입되어 있지 않습니다.');
+    }
+    if (user.id === club.hostId) {
+      throw new ConflictException('클럽장은 클럽에서 나갈 수 없습니다');
+    }
+    const events = await this.clubRepository.getClubEventsJoinByUser(
+      user.id,
+      clubId,
+    );
+    let deleteEventsIds: number[] = [];
+    let outEventsIds: number[] = [];
+    for (const event of events) {
+      if (event.startTime < new Date() && new Date() < event.endTime) {
+        throw new ConflictException(
+          '이미 진행 중인 클럽 전용 모임이 있습니다.',
+        );
+      }
+      if (new Date() > event.startTime) {
+        continue;
+      }
+      if (user.id === event.hostId) {
+        deleteEventsIds.push(event.id);
+      }
+      outEventsIds.push(event.id);
+    }
+    await this.clubRepository.leaveClub(
+      clubId,
+      user.id,
+      deleteEventsIds,
+      outEventsIds,
+    );
   }
 }

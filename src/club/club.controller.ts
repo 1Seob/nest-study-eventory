@@ -6,6 +6,7 @@ import {
   Post,
   UseGuards,
   HttpCode,
+  ParseIntPipe,
 } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
@@ -47,7 +48,7 @@ export class ClubController {
   @ApiOperation({ summary: '새로운 클럽 모임을 추가합니다' })
   @ApiCreatedResponse({ type: EventDto })
   async createClubEvent(
-    @Param('clubId') clubId: number,
+    @Param('clubId', ParseIntPipe) clubId: number,
     @Body() createClubEventPayload: CreateEventPayload,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<EventDto> {
@@ -65,10 +66,23 @@ export class ClubController {
   @ApiNoContentResponse()
   @HttpCode(204)
   async applyClub(
-    @Param('clubId') clubId: number,
+    @Param('clubId', ParseIntPipe) clubId: number,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     await this.clubService.applyClub(clubId, user);
+  }
+
+  @Post(':clubId/leave')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '클럽에서 탈퇴합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async leaveClub(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.leaveClub(clubId, user);
   }
 
   @Get(':clubId/applicants')
@@ -77,7 +91,7 @@ export class ClubController {
   @ApiOperation({ summary: '(클럽장) 클럽 가입 신청자들을 조회합니다' })
   @ApiCreatedResponse({ type: ApplicantListDto })
   async getApplicants(
-    @Param('clubId') clubId: number,
+    @Param('clubId', ParseIntPipe) clubId: number,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<ApplicantListDto> {
     return this.clubService.getApplicants(clubId, user);
@@ -90,8 +104,8 @@ export class ClubController {
   @ApiNoContentResponse()
   @HttpCode(204)
   async acceptApplicant(
-    @Param('clubId') clubId: number,
-    @Param('userId') userId: number,
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     await this.clubService.approveApplicant(clubId, userId, user);
@@ -104,8 +118,8 @@ export class ClubController {
   @ApiNoContentResponse()
   @HttpCode(204)
   async rejectApplicant(
-    @Param('clubId') clubId: number,
-    @Param('userId') userId: number,
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @Param('userId', ParseIntPipe) userId: number,
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     await this.clubService.rejectApplicant(clubId, userId, user);
