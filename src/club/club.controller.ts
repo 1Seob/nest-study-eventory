@@ -124,4 +124,18 @@ export class ClubController {
   ): Promise<void> {
     await this.clubService.rejectApplicant(clubId, userId, user);
   }
+
+  @Post(':clubId/delegate/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '(클럽장) 클럽장을 위임합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async delegateHost(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @Param('userId', ParseIntPipe) userId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.delegateHost(clubId, userId, user);
+  }
 }
