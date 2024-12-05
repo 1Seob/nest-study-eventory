@@ -11,6 +11,8 @@ import { EventRepository } from 'src/event/event.repository';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { EventDto } from '../event/dto/event.dto';
 import { ClubQuery } from './query/club.query';
+import { PatchUpdateClubPayload } from './payload/patch-update-club.payload';
+import { UpdateClubData } from './type/update-club-data.type';
 
 @Injectable()
 export class ClubService {
@@ -261,5 +263,44 @@ export class ClubService {
   async getClubs(query: ClubQuery): Promise<ClubListDto> {
     const clubs = await this.clubRepository.getClubs(query);
     return ClubListDto.from(clubs);
+  }
+
+  async patchUpdateClub(
+    clubId: number,
+    payload: PatchUpdateClubPayload,
+    user: UserBaseInfo,
+  ): Promise<ClubDto> {
+    if (payload.title === null) {
+      throw new ConflictException('클럽 이름은 null이 될 수 없습니다.');
+    }
+    if (payload.description === null) {
+      throw new ConflictException('클럽 설명은 null이 될 수 없습니다.');
+    }
+    if (payload.maxPeople === null) {
+      throw new ConflictException('최대 인원 수는 null이 될 수 없습니다.');
+    }
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 클럽 정보를 수정할 수 있습니다.');
+    }
+    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    if (payload.maxPeople && memberNumber > payload.maxPeople) {
+      throw new ConflictException(
+        '클럽의 정원이 현재 인원 수보다 작을 수 없습니다.',
+      );
+    }
+    const updateData: UpdateClubData = {
+      title: payload.title,
+      description: payload.description,
+      maxPeople: payload.maxPeople,
+    };
+    const updatedClub = await this.clubRepository.patchUpdateClub(
+      clubId,
+      updateData,
+    );
+    return ClubDto.from(updatedClub);
   }
 }
