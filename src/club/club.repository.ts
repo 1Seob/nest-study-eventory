@@ -317,6 +317,9 @@ export class ClubRepository {
         title: {
           contains: query.title,
         },
+        description: {
+          contains: query.description,
+        },
       },
       select: {
         id: true,

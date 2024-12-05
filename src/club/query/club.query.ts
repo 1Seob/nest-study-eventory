@@ -20,4 +20,13 @@ export class ClubQuery {
     type: String,
   })
   title?: string;
+
+  @IsOptional()
+  @IsString()
+  @Type(() => String)
+  @ApiPropertyOptional({
+    description: '클럽 설명',
+    type: String,
+  })
+  description?: string;
 }
