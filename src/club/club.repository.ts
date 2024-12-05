@@ -319,4 +319,15 @@ export class ClubRepository {
       }),
     ]);
   }
+
+  async delegateHost(clubId: number, newHostId: number): Promise<void> {
+    await this.prisma.club.update({
+      where: {
+        id: clubId,
+      },
+      data: {
+        hostId: newHostId,
+      },
+    });
+  }
 }

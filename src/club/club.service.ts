@@ -220,4 +220,28 @@ export class ClubService {
       outEventsIds,
     );
   }
+
+  async delegateHost(clubId: number, userId: number, user: UserBaseInfo) {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 클럽장을 위임할 수 있습니다.');
+    }
+    const newHost = await this.clubRepository.getUserById(userId);
+    if (!newHost) {
+      throw new NotFoundException('존재하지 않는 사용자입니다.');
+    }
+    const isUserClubMember = await this.clubRepository.isUserClubMember(
+      userId,
+      clubId,
+    );
+    if (!isUserClubMember) {
+      throw new ConflictException(
+        '클럽 멤버에게만 클럽장을 위임할 수 있습니다.',
+      );
+    }
+    await this.clubRepository.delegateHost(clubId, userId);
+  }
 }
