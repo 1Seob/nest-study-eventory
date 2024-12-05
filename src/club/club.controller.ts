@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiCreatedResponse,
   ApiNoContentResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiTags,
 } from '@nestjs/swagger';
@@ -91,14 +92,14 @@ export class ClubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '내가 가입한 클럽 목록을 조회합니다' })
-  @ApiCreatedResponse({ type: ClubListDto })
+  @ApiOkResponse({ type: ClubListDto })
   async getMyClubs(@CurrentUser() user: UserBaseInfo): Promise<ClubListDto> {
     return this.clubService.getMyClubs(user);
   }
 
   @Get(':clubId')
   @ApiOperation({ summary: '특정 클럽을 조회합니다' })
-  @ApiCreatedResponse({ type: ClubDto })
+  @ApiOkResponse({ type: ClubDto })
   async getClubById(
     @Param('clubId', ParseIntPipe) clubId: number,
   ): Promise<ClubDto> {
@@ -107,7 +108,7 @@ export class ClubController {
 
   @Get()
   @ApiOperation({ summary: '여러 클럽을 조회합니다' })
-  @ApiCreatedResponse({ type: ClubListDto })
+  @ApiOkResponse({ type: ClubListDto })
   async getClubs(@Query() query: ClubQuery): Promise<ClubListDto> {
     return this.clubService.getClubs(query);
   }
@@ -116,7 +117,7 @@ export class ClubController {
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: '(클럽장) 클럽 가입 신청자들을 조회합니다' })
-  @ApiCreatedResponse({ type: ApplicantListDto })
+  @ApiOkResponse({ type: ApplicantListDto })
   async getApplicants(
     @Param('clubId', ParseIntPipe) clubId: number,
     @CurrentUser() user: UserBaseInfo,
