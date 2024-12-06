@@ -13,6 +13,7 @@ import { EventDto } from '../event/dto/event.dto';
 import { ClubQuery } from './query/club.query';
 import { PatchUpdateClubPayload } from './payload/patch-update-club.payload';
 import { UpdateClubData } from './type/update-club-data.type';
+import { ClubJoinStatus } from '@prisma/client';
 
 @Injectable()
 export class ClubService {
@@ -102,12 +103,10 @@ export class ClubService {
     if (isUserClubMember) {
       throw new ConflictException('이미 해당 클럽에 가입되어 있습니다.');
     }
-    let memberNumber = 0;
-    for (const member of club.clubJoin) {
-      if (member.status === 'MEMBER') {
-        memberNumber++;
-      }
-    }
+    const memberNumber = club.clubJoin.filter(
+      (member) => member.status === ClubJoinStatus.MEMBER,
+    ).length;
+
     if (memberNumber >= club.maxPeople) {
       throw new ConflictException('클럽의 정원이 가득 찼습니다.');
     }
@@ -152,12 +151,9 @@ export class ClubService {
     if (!isClubApplicant) {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
-    let memberNumber = 0;
-    for (const member of club.clubJoin) {
-      if (member.status === 'MEMBER') {
-        memberNumber++;
-      }
-    }
+    const memberNumber = club.clubJoin.filter(
+      (member) => member.status === ClubJoinStatus.MEMBER,
+    ).length;
     if (memberNumber >= club.maxPeople) {
       throw new ConflictException('클럽의 정원이 가득 찼습니다.');
     }
@@ -296,12 +292,9 @@ export class ClubService {
     if (club.hostId !== user.id) {
       throw new ConflictException('클럽장만 클럽 정보를 수정할 수 있습니다.');
     }
-    let memberNumber = 0;
-    for (const member of club.clubJoin) {
-      if (member.status === 'MEMBER') {
-        memberNumber++;
-      }
-    }
+    const memberNumber = club.clubJoin.filter(
+      (member) => member.status === ClubJoinStatus.MEMBER,
+    ).length;
     if (payload.maxPeople && memberNumber > payload.maxPeople) {
       throw new ConflictException(
         '클럽의 정원이 현재 인원 수보다 작을 수 없습니다.',
