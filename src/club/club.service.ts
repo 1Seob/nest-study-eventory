@@ -286,7 +286,12 @@ export class ClubService {
     if (club.hostId !== user.id) {
       throw new ConflictException('클럽장만 클럽 정보를 수정할 수 있습니다.');
     }
-    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    let memberNumber = 0;
+    for (const member of club.clubJoin) {
+      if (member.status === 'MEMBER') {
+        memberNumber++;
+      }
+    }
     if (payload.maxPeople && memberNumber > payload.maxPeople) {
       throw new ConflictException(
         '클럽의 정원이 현재 인원 수보다 작을 수 없습니다.',
