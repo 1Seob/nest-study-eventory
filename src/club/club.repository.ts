@@ -169,18 +169,6 @@ export class ClubRepository {
     return !!event;
   }
 
-  async getClubMemberNumber(clubId: number): Promise<number> {
-    return await this.prisma.clubJoin.count({
-      where: {
-        clubId,
-        status: ClubJoinStatus.MEMBER,
-        user: {
-          deletedAt: null,
-        },
-      },
-    });
-  }
-
   async applyClub(userId: number, clubId: number): Promise<void> {
     await this.prisma.clubJoin.create({
       data: {

@@ -102,7 +102,12 @@ export class ClubService {
     if (isUserClubMember) {
       throw new ConflictException('이미 해당 클럽에 가입되어 있습니다.');
     }
-    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    let memberNumber = 0;
+    for (const member of club.clubJoin) {
+      if (member.status === 'MEMBER') {
+        memberNumber++;
+      }
+    }
     if (memberNumber >= club.maxPeople) {
       throw new ConflictException('클럽의 정원이 가득 찼습니다.');
     }
@@ -147,7 +152,12 @@ export class ClubService {
     if (!isClubApplicant) {
       throw new NotFoundException('클럽 가입 신청자가 아닙니다.');
     }
-    const memberNumber = await this.clubRepository.getClubMemberNumber(clubId);
+    let memberNumber = 0;
+    for (const member of club.clubJoin) {
+      if (member.status === 'MEMBER') {
+        memberNumber++;
+      }
+    }
     if (memberNumber >= club.maxPeople) {
       throw new ConflictException('클럽의 정원이 가득 찼습니다.');
     }
