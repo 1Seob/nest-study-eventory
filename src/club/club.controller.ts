@@ -8,6 +8,7 @@ import {
   HttpCode,
   ParseIntPipe,
   Query,
+  Patch,
 } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
@@ -27,6 +28,7 @@ import { CreateEventPayload } from '../event/payload/create-event.payload';
 import { ApplicantListDto } from './dto/applicantlist.dto';
 import { EventDto } from '../event/dto/event.dto';
 import { ClubQuery } from './query/club.query';
+import { PatchUpdateClubPayload } from './payload/patch-update-club.payload';
 
 @Controller('clubs')
 @ApiTags('Club API')
@@ -111,6 +113,19 @@ export class ClubController {
   @ApiOkResponse({ type: ClubListDto })
   async getClubs(@Query() query: ClubQuery): Promise<ClubListDto> {
     return this.clubService.getClubs(query);
+  }
+
+  @Patch(':clubId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '클럽 정보를 수정합니다' })
+  @ApiOkResponse({ type: ClubDto })
+  async patchUpdateClub(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @Body() payload: PatchUpdateClubPayload,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<ClubDto> {
+    return this.clubService.patchUpdateClub(clubId, payload, user);
   }
 
   @Get(':clubId/applicants')

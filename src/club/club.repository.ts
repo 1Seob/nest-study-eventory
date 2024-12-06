@@ -8,6 +8,7 @@ import { EventData } from '../event/type/event-data.type';
 import { ApplicantData } from './type/applicant-data.type';
 import { User } from '@prisma/client';
 import { ClubQuery } from './query/club.query';
+import { UpdateClubData } from './type/update-club-data.type';
 
 @Injectable()
 export class ClubRepository {
@@ -94,7 +95,9 @@ export class ClubRepository {
 
   async getClubById(id: number): Promise<ClubData | null> {
     return await this.prisma.club.findUnique({
-      where: { id },
+      where: {
+        id,
+      },
       select: {
         id: true,
         hostId: true,
@@ -102,6 +105,11 @@ export class ClubRepository {
         description: true,
         maxPeople: true,
         clubJoin: {
+          where: {
+            user: {
+              deletedAt: null,
+            },
+          },
           select: {
             userId: true,
             status: true,
@@ -126,6 +134,11 @@ export class ClubRepository {
           description: true,
           maxPeople: true,
           clubJoin: {
+            where: {
+              user: {
+                deletedAt: null,
+              },
+            },
             select: {
               userId: true,
               status: true,
@@ -154,18 +167,6 @@ export class ClubRepository {
       },
     });
     return !!event;
-  }
-
-  async getClubMemberNumber(clubId: number): Promise<number> {
-    return await this.prisma.clubJoin.count({
-      where: {
-        clubId,
-        status: ClubJoinStatus.MEMBER,
-        user: {
-          deletedAt: null,
-        },
-      },
-    });
   }
 
   async applyClub(userId: number, clubId: number): Promise<void> {
@@ -298,6 +299,11 @@ export class ClubRepository {
         description: true,
         maxPeople: true,
         clubJoin: {
+          where: {
+            user: {
+              deletedAt: null,
+            },
+          },
           select: {
             userId: true,
             status: true,
@@ -328,6 +334,11 @@ export class ClubRepository {
         description: true,
         maxPeople: true,
         clubJoin: {
+          where: {
+            user: {
+              deletedAt: null,
+            },
+          },
           select: {
             userId: true,
             status: true,
@@ -384,6 +395,40 @@ export class ClubRepository {
       },
       data: {
         hostId: newHostId,
+      },
+    });
+  }
+
+  async patchUpdateClub(
+    clubId: number,
+    data: UpdateClubData,
+  ): Promise<ClubData> {
+    return await this.prisma.club.update({
+      where: {
+        id: clubId,
+      },
+      data: {
+        title: data.title,
+        description: data.description,
+        maxPeople: data.maxPeople,
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        maxPeople: true,
+        clubJoin: {
+          where: {
+            user: {
+              deletedAt: null,
+            },
+          },
+          select: {
+            userId: true,
+            status: true,
+          },
+        },
       },
     });
   }
