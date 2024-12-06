@@ -9,6 +9,7 @@ import {
   ParseIntPipe,
   Query,
   Patch,
+  Delete,
 } from '@nestjs/common';
 import { ClubService } from './club.service';
 import {
@@ -180,5 +181,18 @@ export class ClubController {
     @CurrentUser() user: UserBaseInfo,
   ): Promise<void> {
     await this.clubService.delegateHost(clubId, userId, user);
+  }
+
+  @Delete(':clubId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '(클럽장) 클럽을 삭제합니다' })
+  @ApiNoContentResponse()
+  @HttpCode(204)
+  async deleteClub(
+    @Param('clubId', ParseIntPipe) clubId: number,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<void> {
+    await this.clubService.deleteClub(clubId, user);
   }
 }
