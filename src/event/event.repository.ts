@@ -22,6 +22,7 @@ export class EventRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         maxPeople: data.maxPeople,
+        isArchived: false,
         eventJoin: {
           create: {
             userId: data.hostId,
@@ -44,6 +45,7 @@ export class EventRepository {
         startTime: true,
         endTime: true,
         maxPeople: true,
+        isArchived: true,
         eventJoin: {
           select: {
             id: true,
@@ -125,41 +127,21 @@ export class EventRepository {
     });
   }
 
-  async getEvents(query: EventQuery, userId: number): Promise<EventData[]> {
+  async getEvents(query: EventQuery): Promise<EventData[]> {
     return await this.prisma.event.findMany({
       where: {
-        AND: [
-          {
-            host: { deletedAt: null, id: query.hostId },
-            categoryId: query.categoryId,
-            eventCity: {
-              some: { cityId: { in: query.cityIds } },
+        host: {
+          deletedAt: null,
+          id: query.hostId,
+        },
+        categoryId: query.categoryId,
+        eventCity: {
+          some: {
+            cityId: {
+              in: query.cityIds,
             },
           },
-          {
-            OR: [
-              // 일반적인 이벤트 (아카이브되지 않은 경우)
-              { isArchived: false, clubId: null },
-              // 아카이브된 이벤트 (참여자인 경우만)
-              {
-                isArchived: true,
-                eventJoin: { some: { userId } },
-              },
-              // 클럽 이벤트 (클럽 멤버인 경우만)
-              {
-                clubId: { not: null },
-                club: {
-                  clubJoin: {
-                    some: {
-                      userId,
-                      status: ClubJoinStatus.MEMBER,
-                    },
-                  },
-                },
-              },
-            ],
-          },
-        ],
+        },
       },
       select: {
         id: true,
@@ -308,6 +290,7 @@ export class EventRepository {
           startTime: true,
           endTime: true,
           maxPeople: true,
+          isArchived: true,
         },
       });
     });
@@ -331,5 +314,22 @@ export class EventRepository {
         },
       }),
     ]);
+  }
+
+  async getAchivedEventIdsJoinedByUser(userId: number): Promise<number[]> {
+    const events = await this.prisma.event.findMany({
+      where: {
+        eventJoin: {
+          some: {
+            userId: userId,
+          },
+        },
+        isArchived: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return events.map((event) => event.id);
   }
 }

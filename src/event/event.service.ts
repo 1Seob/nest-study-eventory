@@ -15,6 +15,7 @@ import { OutEventData } from './type/out-event-data.type';
 import { UpdateEventData } from './type/update-event-data.type';
 import { UserBaseInfo } from 'src/auth/type/user-base-info.type';
 import { ClubRepository } from 'src/club/club.repository';
+import { EventData } from './type/event-data.type';
 
 @Injectable()
 export class EventService {
@@ -75,8 +76,27 @@ export class EventService {
     query: EventQuery,
     user: UserBaseInfo,
   ): Promise<EventListDto> {
-    const events = await this.eventRepository.getEvents(query, user.id);
-    return EventListDto.from(events);
+    const events = await this.eventRepository.getEvents(query);
+    const clubIdsJoinedByUser =
+      await this.clubRepository.getClubIdsJoinedByUser(user.id);
+    const achivedEventIdsJoinedByUser =
+      await this.eventRepository.getAchivedEventIdsJoinedByUser(user.id);
+    let eventList: EventData[] = [];
+    for (const event of events) {
+      eventList.push(event);
+      if (event.clubId && !clubIdsJoinedByUser.includes(event.clubId)) {
+        eventList.pop();
+        continue;
+      }
+      if (
+        event.isArchived == true &&
+        !achivedEventIdsJoinedByUser.includes(event.id)
+      ) {
+        eventList.pop();
+        continue;
+      }
+    }
+    return EventListDto.from(eventList);
   }
 
   async getEventById(eventId: number, user: UserBaseInfo): Promise<EventDto> {

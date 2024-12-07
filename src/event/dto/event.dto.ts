@@ -67,7 +67,7 @@ export class EventDto {
     description: '아카이브 여부',
     type: Boolean,
   })
-  isArchived?: boolean | null;
+  isArchived!: boolean;
 
   static from(event: EventData): EventDto {
     return {
