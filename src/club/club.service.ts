@@ -321,6 +321,7 @@ export class ClubService {
       throw new ConflictException('클럽장만 클럽을 삭제할 수 있습니다.');
     }
     const events = await this.clubRepository.getClubEvents(clubId);
+    let archiveEventsIds: number[] = [];
     let deleteEventsIds: number[] = [];
     for (const event of events) {
       if (event.startTime < new Date() && new Date() < event.endTime) {
@@ -329,7 +330,12 @@ export class ClubService {
       if (new Date() < event.startTime) {
         deleteEventsIds.push(event.id);
       }
+      archiveEventsIds.push(event.id);
     }
-    await this.clubRepository.deleteClub(clubId, deleteEventsIds);
+    await this.clubRepository.deleteClub(
+      clubId,
+      deleteEventsIds,
+      archiveEventsIds,
+    );
   }
 }
