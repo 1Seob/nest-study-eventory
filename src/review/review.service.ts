@@ -110,7 +110,7 @@ export class ReviewService {
     query: ReviewQuery,
     user: UserBaseInfo,
   ): Promise<ReviewListDto> {
-    const reviews = await this.reviewRepository.getReviews(query);
+    const reviews = await this.reviewRepository.getReviews(query, user.id);
     return ReviewListDto.from(reviews);
   }
 

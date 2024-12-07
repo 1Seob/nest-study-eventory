@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateReviewData } from './type/create-review-data.type';
 import { ReviewData } from './type/review-data.type';
-import { User, Event } from '@prisma/client';
+import { User, Event, ClubJoinStatus } from '@prisma/client';
 import { ReviewQuery } from './query/review.query';
 import { UpdateReviewData } from './type/update-review-data.type';
 
@@ -95,22 +95,45 @@ export class ReviewRepository {
     });
   }
 
-  async getReviews(query: ReviewQuery): Promise<ReviewData[]> {
-    return this.prisma.review.findMany({
+  async getReviews(query: ReviewQuery, userId: number) {
+    return await this.prisma.review.findMany({
       where: {
-        eventId: query.eventId,
-        user: {
-          deletedAt: null,
-          id: query.userId,
-        },
-      },
-      select: {
-        id: true,
-        userId: true,
-        eventId: true,
-        score: true,
-        title: true,
-        description: true,
+        AND: [
+          {
+            eventId: query.eventId,
+            user: {
+              deletedAt: null,
+              id: query.userId,
+            },
+          },
+          {
+            OR: [
+              // 아카이빙하는 모임 리뷰
+              {
+                event: {
+                  isArchived: true,
+                  eventJoin: { some: { userId } },
+                },
+              },
+              // 클럽 모임 리뷰
+              {
+                event: {
+                  clubId: { not: null },
+                  club: {
+                    clubJoin: {
+                      some: {
+                        userId,
+                        status: ClubJoinStatus.MEMBER,
+                      },
+                    },
+                  },
+                },
+              },
+              // 일반 모임 리뷰
+              { event: { isArchived: false, clubId: null } },
+            ],
+          },
+        ],
       },
     });
   }
