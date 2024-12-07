@@ -243,6 +243,37 @@ export class ClubRepository {
     });
   }
 
+  async getClubEvents(clubId: number): Promise<EventData[]> {
+    return await this.prisma.event.findMany({
+      where: {
+        clubId,
+      },
+      select: {
+        id: true,
+        hostId: true,
+        title: true,
+        description: true,
+        categoryId: true,
+        startTime: true,
+        endTime: true,
+        maxPeople: true,
+        clubId: true,
+        eventJoin: {
+          select: {
+            id: true,
+            userId: true,
+          },
+        },
+        eventCity: {
+          select: {
+            id: true,
+            cityId: true,
+          },
+        },
+      },
+    });
+  }
+
   async getClubEventsJoinByUser(
     userId: number,
     cludId: number,
@@ -431,5 +462,56 @@ export class ClubRepository {
         },
       },
     });
+  }
+
+  async deleteClub(
+    clubId: number,
+    deleteEventsIds: number[],
+    archiveEventsIds: number[],
+  ): Promise<void> {
+    await this.prisma.$transaction([
+      this.prisma.eventJoin.deleteMany({
+        where: {
+          eventId: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
+      this.prisma.eventCity.deleteMany({
+        where: {
+          eventId: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
+      this.prisma.event.deleteMany({
+        where: {
+          id: {
+            in: deleteEventsIds,
+          },
+        },
+      }),
+      this.prisma.event.updateMany({
+        where: {
+          id: {
+            in: archiveEventsIds,
+          },
+        },
+        data: {
+          isArchived: true,
+          clubId: null,
+        },
+      }),
+      this.prisma.clubJoin.deleteMany({
+        where: {
+          clubId,
+        },
+      }),
+      this.prisma.club.delete({
+        where: {
+          id: clubId,
+        },
+      }),
+    ]);
   }
 }

@@ -103,6 +103,7 @@ export class EventRepository {
     return await this.prisma.event.findUnique({
       where: {
         id: eventId,
+        isArchived: false,
       },
       select: {
         id: true,
@@ -131,6 +132,7 @@ export class EventRepository {
           deletedAt: null,
           id: query.hostId,
         },
+        isArchived: false,
         categoryId: query.categoryId,
         eventCity: {
           some: {

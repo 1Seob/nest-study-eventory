@@ -311,4 +311,31 @@ export class ClubService {
     );
     return ClubDto.from(updatedClub);
   }
+
+  async deleteClub(clubId: number, user: UserBaseInfo): Promise<void> {
+    const club = await this.clubRepository.getClubById(clubId);
+    if (!club) {
+      throw new NotFoundException('존재하지 않는 클럽입니다.');
+    }
+    if (club.hostId !== user.id) {
+      throw new ConflictException('클럽장만 클럽을 삭제할 수 있습니다.');
+    }
+    const events = await this.clubRepository.getClubEvents(clubId);
+    let archiveEventsIds: number[] = [];
+    let deleteEventsIds: number[] = [];
+    for (const event of events) {
+      if (event.startTime < new Date() && new Date() < event.endTime) {
+        throw new ConflictException('진행 중인 클럽 전용 모임이 있습니다.');
+      }
+      if (new Date() < event.startTime) {
+        deleteEventsIds.push(event.id);
+      }
+      archiveEventsIds.push(event.id);
+    }
+    await this.clubRepository.deleteClub(
+      clubId,
+      deleteEventsIds,
+      archiveEventsIds,
+    );
+  }
 }
