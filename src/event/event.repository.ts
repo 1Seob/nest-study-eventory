@@ -4,7 +4,7 @@ import { CreateEventData } from './type/create-event-data.type';
 import { EventData } from './type/event-data.type';
 import { EventQuery } from './query/event.query';
 import { JoinEventData } from './type/join-event-data.type';
-import { User, Category, City, Club } from '@prisma/client';
+import { User, Category, City, Club, ClubJoinStatus } from '@prisma/client';
 import { OutEventData } from './type/out-event-data.type';
 import { UpdateEventData } from './type/update-event-data.type';
 
@@ -103,7 +103,6 @@ export class EventRepository {
     return await this.prisma.event.findUnique({
       where: {
         id: eventId,
-        isArchived: false,
       },
       select: {
         id: true,
@@ -121,26 +120,46 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
 
-  async getEvents(query: EventQuery): Promise<EventData[]> {
+  async getEvents(query: EventQuery, userId: number): Promise<EventData[]> {
     return await this.prisma.event.findMany({
       where: {
-        host: {
-          deletedAt: null,
-          id: query.hostId,
-        },
-        isArchived: false,
-        categoryId: query.categoryId,
-        eventCity: {
-          some: {
-            cityId: {
-              in: query.cityIds,
+        AND: [
+          {
+            host: { deletedAt: null, id: query.hostId },
+            categoryId: query.categoryId,
+            eventCity: {
+              some: { cityId: { in: query.cityIds } },
             },
           },
-        },
+          {
+            OR: [
+              // 일반적인 이벤트 (아카이브되지 않은 경우)
+              { isArchived: false, clubId: null },
+              // 아카이브된 이벤트 (참여자인 경우만)
+              {
+                isArchived: true,
+                eventJoin: { some: { userId } },
+              },
+              // 클럽 이벤트 (클럽 멤버인 경우만)
+              {
+                clubId: { not: null },
+                club: {
+                  clubJoin: {
+                    some: {
+                      userId,
+                      status: ClubJoinStatus.MEMBER,
+                    },
+                  },
+                },
+              },
+            ],
+          },
+        ],
       },
       select: {
         id: true,
@@ -158,6 +177,7 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
@@ -187,6 +207,7 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
@@ -198,7 +219,6 @@ export class EventRepository {
       },
     });
   }
-
   async joinEvent(data: JoinEventData): Promise<void> {
     await this.prisma.eventJoin.create({
       data: {

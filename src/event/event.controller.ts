@@ -55,19 +55,27 @@ export class EventController {
   }
 
   @Get(':eventId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '특정 모임을 조회합니다' })
   @ApiOkResponse({ type: EventDto })
   async getEventbyId(
     @Param('eventId', ParseIntPipe) eventId: number,
+    @CurrentUser() user: UserBaseInfo,
   ): Promise<EventDto> {
-    return this.eventService.getEventById(eventId);
+    return this.eventService.getEventById(eventId, user);
   }
 
   @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
   @ApiOperation({ summary: '여러 모임을 조회합니다' })
   @ApiOkResponse({ type: EventListDto })
-  async getEvents(@Query() query: EventQuery): Promise<EventListDto> {
-    return this.eventService.getEvents(query);
+  async getEvents(
+    @Query() query: EventQuery,
+    @CurrentUser() user: UserBaseInfo,
+  ): Promise<EventListDto> {
+    return this.eventService.getEvents(query, user);
   }
 
   @Post(':eventId/join')

@@ -329,6 +329,7 @@ export class ClubService {
       }
       if (new Date() < event.startTime) {
         deleteEventsIds.push(event.id);
+        continue;
       }
       archiveEventsIds.push(event.id);
     }
