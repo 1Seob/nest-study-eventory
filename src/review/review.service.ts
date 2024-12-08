@@ -13,11 +13,17 @@ import { UpdateReviewData } from './type/update-review-data.type';
 import { PutUpdateReviewPayload } from './payload/put-update-review.payload';
 import { PatchUpdateReviewPayload } from './payload/patch-update-review.payload';
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
+import { EventRepository } from 'src/event/event.repository';
+import { ClubRepository } from 'src/club/club.repository';
 import { ReviewData } from './type/review-data.type';
 
 @Injectable()
 export class ReviewService {
-  constructor(private readonly reviewRepository: ReviewRepository) {}
+  constructor(
+    private readonly reviewRepository: ReviewRepository,
+    private readonly eventRepository: EventRepository,
+    private readonly clubRepository: ClubRepository,
+  ) {}
 
   async createReview(
     payload: CreateReviewPayload,
@@ -69,20 +75,70 @@ export class ReviewService {
     return ReviewDto.from(review);
   }
 
-  async getReviewById(reviewId: number): Promise<ReviewDto> {
+  async getReviewById(
+    reviewId: number,
+    user: UserBaseInfo,
+  ): Promise<ReviewDto> {
     const review = await this.reviewRepository.getReviewById(reviewId);
-
     if (!review) {
       throw new NotFoundException('Review가 존재하지 않습니다.');
     }
-
+    const event = await this.eventRepository.getEventById(review.eventId);
+    if (event?.clubId) {
+      const isUserClubMember = await this.clubRepository.isUserClubMember(
+        user.id,
+        event.clubId,
+      );
+      if (!isUserClubMember) {
+        throw new ConflictException(
+          '클럽 회원만 클럽 전용 모임의 리뷰를 볼 수 있습니다.',
+        );
+      }
+    }
+    if (event?.isArchived) {
+      const isUserJoinedEvent = await this.reviewRepository.isUserJoinedEvent(
+        user.id,
+        review.eventId,
+      );
+      if (!isUserJoinedEvent) {
+        throw new ConflictException('모임 참가자만 볼 수 있는 리뷰입니다');
+      }
+    }
     return ReviewDto.from(review);
   }
 
-  async getReviews(query: ReviewQuery): Promise<ReviewListDto> {
+  async getReviews(
+    query: ReviewQuery,
+    user: UserBaseInfo,
+  ): Promise<ReviewListDto> {
     const reviews = await this.reviewRepository.getReviews(query);
-
-    return ReviewListDto.from(reviews);
+    const map = await this.eventRepository.getMapReviewToEventDetails(
+      reviews.map((review) => review.id),
+    );
+    const clubIdsJoinedByUser =
+      await this.clubRepository.getClubIdsJoinedByUser(user.id);
+    const achivedEventIdsJoinedByUser =
+      await this.eventRepository.getAchivedEventIdsJoinedByUser(user.id);
+    let reviewList: ReviewData[] = [];
+    for (const review of reviews) {
+      reviewList.push(review);
+      const eventId = map.get(review.id)?.eventId;
+      const clubId = map.get(review.id)?.clubId;
+      const isArchived = map.get(review.id)?.isArchived;
+      if (clubId && !clubIdsJoinedByUser.includes(clubId)) {
+        reviewList.pop();
+        continue;
+      }
+      if (
+        isArchived &&
+        eventId &&
+        !achivedEventIdsJoinedByUser.includes(eventId)
+      ) {
+        reviewList.pop();
+        continue;
+      }
+    }
+    return ReviewListDto.from(reviewList);
   }
 
   async putUpdateReview(

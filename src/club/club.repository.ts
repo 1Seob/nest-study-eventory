@@ -55,6 +55,7 @@ export class ClubRepository {
         endTime: data.endTime,
         maxPeople: data.maxPeople,
         clubId: data.clubId,
+        isArchived: false,
         eventJoin: {
           create: {
             userId: data.hostId,
@@ -77,6 +78,7 @@ export class ClubRepository {
         startTime: true,
         endTime: true,
         maxPeople: true,
+        isArchived: true,
         eventJoin: {
           select: {
             id: true,
@@ -258,6 +260,7 @@ export class ClubRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
         eventJoin: {
           select: {
             id: true,
@@ -297,6 +300,7 @@ export class ClubRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
         eventJoin: {
           select: {
             id: true,
@@ -513,5 +517,18 @@ export class ClubRepository {
         },
       }),
     ]);
+  }
+
+  async getClubIdsJoinedByUser(userId: number): Promise<number[]> {
+    const clubs = await this.prisma.clubJoin.findMany({
+      where: {
+        userId,
+        status: ClubJoinStatus.MEMBER,
+      },
+      select: {
+        clubId: true,
+      },
+    });
+    return clubs.map((club) => club.clubId);
   }
 }

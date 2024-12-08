@@ -4,7 +4,7 @@ import { CreateEventData } from './type/create-event-data.type';
 import { EventData } from './type/event-data.type';
 import { EventQuery } from './query/event.query';
 import { JoinEventData } from './type/join-event-data.type';
-import { User, Category, City, Club } from '@prisma/client';
+import { User, Category, City, Club, ClubJoinStatus } from '@prisma/client';
 import { OutEventData } from './type/out-event-data.type';
 import { UpdateEventData } from './type/update-event-data.type';
 
@@ -22,6 +22,7 @@ export class EventRepository {
         startTime: data.startTime,
         endTime: data.endTime,
         maxPeople: data.maxPeople,
+        isArchived: false,
         eventJoin: {
           create: {
             userId: data.hostId,
@@ -44,6 +45,7 @@ export class EventRepository {
         startTime: true,
         endTime: true,
         maxPeople: true,
+        isArchived: true,
         eventJoin: {
           select: {
             id: true,
@@ -103,7 +105,6 @@ export class EventRepository {
     return await this.prisma.event.findUnique({
       where: {
         id: eventId,
-        isArchived: false,
       },
       select: {
         id: true,
@@ -121,6 +122,7 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
@@ -132,7 +134,6 @@ export class EventRepository {
           deletedAt: null,
           id: query.hostId,
         },
-        isArchived: false,
         categoryId: query.categoryId,
         eventCity: {
           some: {
@@ -158,6 +159,7 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
@@ -187,6 +189,7 @@ export class EventRepository {
         endTime: true,
         maxPeople: true,
         clubId: true,
+        isArchived: true,
       },
     });
   }
@@ -198,7 +201,6 @@ export class EventRepository {
       },
     });
   }
-
   async joinEvent(data: JoinEventData): Promise<void> {
     await this.prisma.eventJoin.create({
       data: {
@@ -288,6 +290,7 @@ export class EventRepository {
           startTime: true,
           endTime: true,
           maxPeople: true,
+          isArchived: true,
         },
       });
     });
@@ -311,5 +314,58 @@ export class EventRepository {
         },
       }),
     ]);
+  }
+
+  async getAchivedEventIdsJoinedByUser(userId: number): Promise<number[]> {
+    const events = await this.prisma.event.findMany({
+      where: {
+        eventJoin: {
+          some: {
+            userId: userId,
+          },
+        },
+        isArchived: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+    return events.map((event) => event.id);
+  }
+
+  async getMapReviewToEventDetails(
+    reviewIds: number[],
+  ): Promise<
+    Map<number, { eventId: number; clubId: number | null; isArchived: boolean }>
+  > {
+    const reviewEvents = await this.prisma.review.findMany({
+      where: {
+        id: { in: reviewIds },
+      },
+      select: {
+        id: true,
+        event: {
+          select: {
+            id: true,
+            clubId: true,
+            isArchived: true,
+          },
+        },
+      },
+    });
+    const reviewEventMap = new Map<
+      number,
+      { eventId: number; clubId: number | null; isArchived: boolean }
+    >();
+    for (const review of reviewEvents) {
+      if (review.event) {
+        reviewEventMap.set(review.id, {
+          eventId: review.event.id,
+          clubId: review.event.clubId,
+          isArchived: review.event.isArchived,
+        });
+      }
+    }
+    return reviewEventMap;
   }
 }

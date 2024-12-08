@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../common/services/prisma.service';
 import { CreateReviewData } from './type/create-review-data.type';
 import { ReviewData } from './type/review-data.type';
-import { User, Event } from '@prisma/client';
+import { User, Event, ClubJoinStatus } from '@prisma/client';
 import { ReviewQuery } from './query/review.query';
 import { UpdateReviewData } from './type/update-review-data.type';
 

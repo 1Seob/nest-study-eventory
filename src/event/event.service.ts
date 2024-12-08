@@ -15,6 +15,7 @@ import { OutEventData } from './type/out-event-data.type';
 import { UpdateEventData } from './type/update-event-data.type';
 import { UserBaseInfo } from 'src/auth/type/user-base-info.type';
 import { ClubRepository } from 'src/club/club.repository';
+import { EventData } from './type/event-data.type';
 
 @Injectable()
 export class EventService {
@@ -71,15 +72,60 @@ export class EventService {
     return EventDto.from(event);
   }
 
-  async getEvents(query: EventQuery): Promise<EventListDto> {
+  async getEvents(
+    query: EventQuery,
+    user: UserBaseInfo,
+  ): Promise<EventListDto> {
     const events = await this.eventRepository.getEvents(query);
-    return EventListDto.from(events);
+    const clubIdsJoinedByUser =
+      await this.clubRepository.getClubIdsJoinedByUser(user.id);
+    const achivedEventIdsJoinedByUser =
+      await this.eventRepository.getAchivedEventIdsJoinedByUser(user.id);
+    let eventList: EventData[] = [];
+    for (const event of events) {
+      eventList.push(event);
+      if (event.clubId && !clubIdsJoinedByUser.includes(event.clubId)) {
+        eventList.pop();
+        continue;
+      }
+      if (
+        event.isArchived == true &&
+        !achivedEventIdsJoinedByUser.includes(event.id)
+      ) {
+        eventList.pop();
+        continue;
+      }
+    }
+    return EventListDto.from(eventList);
   }
 
-  async getEventById(eventId: number): Promise<EventDto> {
+  async getEventById(eventId: number, user: UserBaseInfo): Promise<EventDto> {
     const event = await this.eventRepository.getEventById(eventId);
     if (!event) {
       throw new NotFoundException('해당 모임을 찾을 수 없습니다.');
+    }
+    const club = await this.clubRepository.getClubByEventId(eventId);
+    if (club) {
+      const isUserClubMember = await this.clubRepository.isUserClubMember(
+        user.id,
+        club.id,
+      );
+      if (!isUserClubMember) {
+        throw new ConflictException(
+          '해당 모임은 클럽 전용 모임입니다. 클럽에 가입하지 않은 사용자는 클럽 전용 모임을 조회할 수 없습니다.',
+        );
+      }
+    }
+    if (event.isArchived === true) {
+      const isUserJoinedEvent = await this.eventRepository.isUserJoinedEvent(
+        eventId,
+        user.id,
+      );
+      if (!isUserJoinedEvent) {
+        throw new ConflictException(
+          '해당 모임은 참가자만 조회할 수 있는 모임입니다.',
+        );
+      }
     }
     return EventDto.from(event);
   }
