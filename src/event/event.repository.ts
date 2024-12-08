@@ -332,4 +332,40 @@ export class EventRepository {
     });
     return events.map((event) => event.id);
   }
+
+  async getMapReviewToEventDetails(
+    reviewIds: number[],
+  ): Promise<
+    Map<number, { eventId: number; clubId: number | null; isArchived: boolean }>
+  > {
+    const reviewEvents = await this.prisma.review.findMany({
+      where: {
+        id: { in: reviewIds },
+      },
+      select: {
+        id: true,
+        event: {
+          select: {
+            id: true,
+            clubId: true,
+            isArchived: true,
+          },
+        },
+      },
+    });
+    const reviewEventMap = new Map<
+      number,
+      { eventId: number; clubId: number | null; isArchived: boolean }
+    >();
+    for (const review of reviewEvents) {
+      if (review.event) {
+        reviewEventMap.set(review.id, {
+          eventId: review.event.id,
+          clubId: review.event.clubId,
+          isArchived: review.event.isArchived,
+        });
+      }
+    }
+    return reviewEventMap;
+  }
 }

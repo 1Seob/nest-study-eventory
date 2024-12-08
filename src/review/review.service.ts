@@ -15,6 +15,7 @@ import { PatchUpdateReviewPayload } from './payload/patch-update-review.payload'
 import { UserBaseInfo } from '../auth/type/user-base-info.type';
 import { EventRepository } from 'src/event/event.repository';
 import { ClubRepository } from 'src/club/club.repository';
+import { ReviewData } from './type/review-data.type';
 
 @Injectable()
 export class ReviewService {
@@ -110,8 +111,34 @@ export class ReviewService {
     query: ReviewQuery,
     user: UserBaseInfo,
   ): Promise<ReviewListDto> {
-    const reviews = await this.reviewRepository.getReviews(query, user.id);
-    return ReviewListDto.from(reviews);
+    const reviews = await this.reviewRepository.getReviews(query);
+    const map = await this.eventRepository.getMapReviewToEventDetails(
+      reviews.map((review) => review.id),
+    );
+    const clubIdsJoinedByUser =
+      await this.clubRepository.getClubIdsJoinedByUser(user.id);
+    const achivedEventIdsJoinedByUser =
+      await this.eventRepository.getAchivedEventIdsJoinedByUser(user.id);
+    let reviewList: ReviewData[] = [];
+    for (const review of reviews) {
+      reviewList.push(review);
+      const eventId = map.get(review.id)?.eventId;
+      const clubId = map.get(review.id)?.clubId;
+      const isArchived = map.get(review.id)?.isArchived;
+      if (clubId && !clubIdsJoinedByUser.includes(clubId)) {
+        reviewList.pop();
+        continue;
+      }
+      if (
+        isArchived &&
+        eventId &&
+        !achivedEventIdsJoinedByUser.includes(eventId)
+      ) {
+        reviewList.pop();
+        continue;
+      }
+    }
+    return ReviewListDto.from(reviewList);
   }
 
   async putUpdateReview(

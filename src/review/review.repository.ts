@@ -95,45 +95,22 @@ export class ReviewRepository {
     });
   }
 
-  async getReviews(query: ReviewQuery, userId: number) {
-    return await this.prisma.review.findMany({
+  async getReviews(query: ReviewQuery): Promise<ReviewData[]> {
+    return this.prisma.review.findMany({
       where: {
-        AND: [
-          {
-            eventId: query.eventId,
-            user: {
-              deletedAt: null,
-              id: query.userId,
-            },
-          },
-          {
-            OR: [
-              // 아카이빙하는 모임 리뷰
-              {
-                event: {
-                  isArchived: true,
-                  eventJoin: { some: { userId } },
-                },
-              },
-              // 클럽 모임 리뷰
-              {
-                event: {
-                  clubId: { not: null },
-                  club: {
-                    clubJoin: {
-                      some: {
-                        userId,
-                        status: ClubJoinStatus.MEMBER,
-                      },
-                    },
-                  },
-                },
-              },
-              // 일반 모임 리뷰
-              { event: { isArchived: false, clubId: null } },
-            ],
-          },
-        ],
+        eventId: query.eventId,
+        user: {
+          deletedAt: null,
+          id: query.userId,
+        },
+      },
+      select: {
+        id: true,
+        userId: true,
+        eventId: true,
+        score: true,
+        title: true,
+        description: true,
       },
     });
   }
